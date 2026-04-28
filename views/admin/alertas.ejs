@@ -3,10 +3,51 @@
 
 <div class="layout">
   <%- include('../partials/sidebar', { role }) %>
+
   <main class="content">
-    <h1>Gestión de Alertas</h1>
-    <p>Aquí se listarán y resolverán alertas.</p>
+    <div class="page-header">
+      <h1>Gestión de Alertas</h1>
+      <p>Revisión de alertas automáticas pendientes generadas por el sistema.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2>Alertas pendientes</h2>
+          <p>Estas alertas aún no han sido resueltas por administración.</p>
+        </div>
+
+        <button class="btn btn-primary" onclick="cargarAlertas()">
+          Actualizar
+        </button>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID Alerta</th>
+            <th>Tipo</th>
+            <th>Nivel</th>
+            <th>Puntaje</th>
+            <th>Solicitud</th>
+            <th>Estado solicitud</th>
+            <th>Fecha</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+
+        <tbody id="alerts-table">
+          <tr>
+            <td colspan="8">Cargando alertas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
   </main>
 </div>
+
+<script src="/js/pages/admin-alertas.js"></script>
 
 <%- include('../partials/footer') %>
