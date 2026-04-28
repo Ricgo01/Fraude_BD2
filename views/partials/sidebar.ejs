@@ -1,0 +1,20 @@
+<aside class="sidebar">
+  <% if (role === 'estudiante') { %>
+    <a href="/estudiante/dashboard">Dashboard</a>
+    <a href="/estudiante/solicitudes">Mis solicitudes</a>
+  <% } %>
+
+  <% if (role === 'revisor') { %>
+    <a href="/revisor/dashboard">Dashboard</a>
+    <a href="/revisor/solicitudes">Solicitudes pendientes</a>
+  <% } %>
+
+  <% if (role === 'admin') { %>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/alertas">Alertas</a>
+    <a href="/admin/fraude">Detección de fraude</a>
+    <a href="/admin/reportes">Reportes</a>
+    <a href="/admin/becas">Becas</a>
+    <a href="/admin/usuarios">Usuarios</a>
+  <% } %>
+</aside>

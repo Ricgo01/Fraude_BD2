@@ -1,26 +1,26 @@
 require('dotenv').config()
 const express = require('express')
+const path = require('path')
 
 const app = express()
 
 // Middlewares
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(express.static('public'))
+app.use(express.static(path.join(__dirname, 'public')))
 
 // Motor de vistas
 app.set('view engine', 'ejs')
-app.set('views', './views')
+app.set('views', path.join(__dirname, 'views'))
 
-// Rutas
+// Rutas de vistas EJS
+app.use('/', require('./src/routes/web.routes'))
+
+// Rutas API existentes
 app.use('/api/reports', require('./src/routes/fraud.routes'))
-// app.use('/api/estudiante', require('./src/routes/estudiante.routes'))
-// app.use('/api/solicitud',  require('./src/routes/solicitud.routes'))
-// app.use('/api/admin',      require('./src/routes/admin.routes'))
 
 // Inicio
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`)
+  console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
-
