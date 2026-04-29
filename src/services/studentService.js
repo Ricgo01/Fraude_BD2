@@ -1,37 +1,14 @@
-const driver = require('./neo4j.service')
-
-function normalize(value) {
-  if (typeof value === 'bigint') {
-    return Number(value)
-  }
-
-  if (value && typeof value.toNumber === 'function') {
-    return value.toNumber()
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(normalize)
-  }
-
-  if (value && typeof value === 'object') {
-    const normalized = {}
-
-    for (const [key, val] of Object.entries(value)) {
-      normalized[key] = normalize(val)
-    }
-
-    return normalized
-  }
-
-  return value
-}
+const { driver, normalizeNeo4jProperties } = require('./neo4j.service')
 
 async function runQuery(query, params = {}) {
   const session = driver.session()
 
   try {
     const result = await session.run(query, params)
-    return result.records.map(record => normalize(record.get('resultado')))
+    return result.records.map(record => normalizeNeo4jProperties(record.get('resultado')))
+  } catch (error) {
+    console.error('Neo4j query error:', error)
+    throw error
   } finally {
     await session.close()
   }
@@ -48,10 +25,10 @@ class StudentService {
       MATCH (e:Estudiante)
       RETURN {
         id: e.ID,
-        nombre: e.Nombre_Completo,
-        promedio: e.Promedio,
-        activo: e.Activo,
-        fecha_registro: toString(e.Fecha_Registro)
+        fullName: e.Nombre_Completo,
+        averageGrade: e.Promedio,
+        isActive: e.Activo,
+        registeredAt: toString(e.Fecha_Registro)
       } AS resultado
       ORDER BY e.Nombre_Completo
       LIMIT 50
@@ -68,26 +45,26 @@ class StudentService {
       OPTIONAL MATCH (e)-[:ENVIA]-(:Solicitud)-[:ADJUNTA]-(d:Documento)
       WITH e, solicitudes, collect(DISTINCT d) AS documentos
       RETURN {
-        estudiante: {
+        student: {
           id: e.ID,
-          nombre: e.Nombre_Completo,
-          promedio: e.Promedio,
-          activo: e.Activo
+          fullName: e.Nombre_Completo,
+          averageGrade: e.Promedio,
+          isActive: e.Activo
         },
-        resumen: {
-          total_solicitudes: size(solicitudes),
-          pendientes: size([x IN solicitudes WHERE x.Estado = 'Pendiente']),
-          en_revision: size([x IN solicitudes WHERE x.Estado = 'En Revisión']),
-          aprobadas: size([x IN solicitudes WHERE x.Estado = 'Aprobada']),
-          rechazadas: size([x IN solicitudes WHERE x.Estado = 'Rechazada']),
-          total_documentos: size(documentos)
+        summary: {
+          totalRequests: size(solicitudes),
+          pending: size([x IN solicitudes WHERE x.Estado = 'Pendiente']),
+          inReview: size([x IN solicitudes WHERE x.Estado = 'En Revisión']),
+          approved: size([x IN solicitudes WHERE x.Estado = 'Aprobada']),
+          rejected: size([x IN solicitudes WHERE x.Estado = 'Rechazada']),
+          totalDocuments: size(documentos)
         },
-        solicitudes: [x IN solicitudes | {
+        requests: [x IN solicitudes | {
           id: x.ID,
-          estado: x.Estado,
-          monto_solicitado: x.Monto_Solicitado,
-          fecha_envio: toString(x.Fecha_Envio),
-          motivo: x.Motivo_Apoyo
+          status: x.Estado,
+          requestedAmount: x.Monto_Solicitado,
+          submittedAt: toString(x.Fecha_Envio),
+          reason: x.Motivo_Apoyo
         }]
       } AS resultado
     `
@@ -104,46 +81,46 @@ class StudentService {
       OPTIONAL MATCH (e)-[:ESTUDIA_EN]-(i)
       OPTIONAL MATCH (e)-[:AVALADO_POR]-(r:Referencia)
       RETURN {
-        estudiante: {
+        student: {
           id: e.ID,
-          nombre: e.Nombre_Completo,
-          fecha_nacimiento: toString(e.Fecha_Nacimiento),
-          promedio: e.Promedio,
-          activo: e.Activo,
-          fecha_registro: toString(e.Fecha_Registro)
+          fullName: e.Nombre_Completo,
+          birthDate: toString(e.Fecha_Nacimiento),
+          averageGrade: e.Promedio,
+          isActive: e.Activo,
+          registeredAt: toString(e.Fecha_Registro)
         },
-        direccion: {
+        address: {
           id: dir.ID,
-          direccion: dir.Direccion,
-          municipio: dir.Municipio,
-          departamento: dir.Departamento,
-          verificada: dir.Verificada
+          address: dir.Direccion,
+          municipality: dir.Municipio,
+          department: dir.Departamento,
+          isVerified: dir.Verificada
         },
-        cuenta: {
+        account: {
           id: c.ID,
-          banco: c.Banco,
-          tipo_cuenta: c.Tipo_Cuenta,
-          terminacion: c.Terminacion,
-          activa: c.Activa
+          bank: c.Banco,
+          accountType: c.Tipo_Cuenta,
+          termination: c.Terminacion,
+          isActive: c.Activa
         },
-        dispositivo: {
+        device: {
           id: d.ID,
-          navegador: d.Navegador,
-          sistema_operativo: d.Sistema_Operativo,
-          activo: d.Activo
+          browser: d.Navegador,
+          os: d.Sistema_Operativo,
+          isActive: d.Activo
         },
-        institucion: {
+        institution: {
           id: i.ID,
-          nombre: i.Nombre,
-          tipo: i.Tipo,
-          departamento: i.Departamento
+          name: i.Nombre,
+          type: i.Tipo,
+          department: i.Departamento
         },
-        referencia: {
+        reference: {
           id: r.ID,
-          nombre: r.Nombre,
-          telefono: r.Telefono,
-          relacion: r.Relacion,
-          verificada: r.Verificada
+          name: r.Nombre,
+          phone: r.Telefono,
+          relationship: r.Relacion,
+          isVerified: r.Verificada
         }
       } AS resultado
     `
@@ -154,22 +131,22 @@ class StudentService {
   async updateProfile(studentId, body) {
     const query = `
       MATCH (e:Estudiante {ID: $studentId})
-      SET e.Nombre_Completo = coalesce($nombre, e.Nombre_Completo),
-          e.Promedio = coalesce(toFloat($promedio), e.Promedio),
-          e.Activo = coalesce($activo, e.Activo)
+      SET e.Nombre_Completo = coalesce($fullName, e.Nombre_Completo),
+          e.Promedio = coalesce(toFloat($averageGrade), e.Promedio),
+          e.Activo = coalesce($isActive, e.Activo)
       RETURN {
         id: e.ID,
-        nombre: e.Nombre_Completo,
-        promedio: e.Promedio,
-        activo: e.Activo
+        fullName: e.Nombre_Completo,
+        averageGrade: e.Promedio,
+        isActive: e.Activo
       } AS resultado
     `
 
     return runSingle(query, {
       studentId,
-      nombre: body.nombre || null,
-      promedio: body.promedio || null,
-      activo: body.activo === undefined ? null : body.activo
+      fullName: body.fullName || null,
+      averageGrade: body.averageGrade || null,
+      isActive: body.isActive === undefined ? null : body.isActive
     })
   }
 
@@ -178,11 +155,11 @@ class StudentService {
       MATCH (b:Beca)
       RETURN {
         id: b.ID,
-        nombre: b.Nombre_Beca,
-        categoria: b.Categoria,
-        monto_max: b.Monto_Max,
-        renovable: b.Renovable,
-        fecha_inicio: toString(b.Fecha_Inicio)
+        scholarshipName: b.Nombre_Beca,
+        category: b.Categoria,
+        maxAmount: b.Monto_Max,
+        isRenewable: b.Renovable,
+        startDate: toString(b.Fecha_Inicio)
       } AS resultado
       ORDER BY b.Nombre_Beca
     `

@@ -22,7 +22,8 @@ app.use('/api/reports', require('./src/routes/fraud.routes'))
 // Rutas API reales de estudiante
 app.use('/api/student', require('./src/routes/student.routes'))
 
-
+// Rutas API reales de revisor
+app.use('/api/reviewer', require('./src/routes/reviewer.routes'))
 
 // Inicio
 const PORT = process.env.PORT || 3000
