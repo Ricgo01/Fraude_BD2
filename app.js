@@ -19,6 +19,11 @@ app.use('/', require('./src/routes/web.routes'))
 // Rutas API existentes
 app.use('/api/reports', require('./src/routes/fraud.routes'))
 
+// Rutas API reales de estudiante
+app.use('/api/student', require('./src/routes/student.routes'))
+
+
+
 // Inicio
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {

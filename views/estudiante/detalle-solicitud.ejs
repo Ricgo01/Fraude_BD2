@@ -1,0 +1,106 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Detalle de Solicitud</h1>
+      <p>Consulta el estado, documentos y relaciones principales de la solicitud.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="cards">
+      <div class="card">
+        <h3>Solicitud</h3>
+        <strong id="solicitud-id">-</strong>
+      </div>
+
+      <div class="card">
+        <h3>Estado</h3>
+        <strong id="solicitud-estado">-</strong>
+      </div>
+
+      <div class="card">
+        <h3>Monto</h3>
+        <strong id="solicitud-monto">Q0</strong>
+      </div>
+
+      <div class="card">
+        <h3>Cumple reglas</h3>
+        <strong id="solicitud-reglas">-</strong>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Información de la solicitud</h2>
+      <p id="solicitud-info">Cargando...</p>
+
+      <div class="actions">
+        <button class="btn btn-warning" onclick="editarSolicitud()">
+          Editar solicitud
+        </button>
+
+        <button class="btn btn-danger" onclick="eliminarSolicitud()">
+          Eliminar solicitud
+        </button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Documentos adjuntos</h2>
+
+      <form id="documento-form" class="grid-2">
+        <input type="hidden" id="solicitudId" value="<%= solicitudId %>">
+
+        <div>
+          <label>Tipo de documento</label>
+          <input class="form-control" id="tipoDocumento" required>
+        </div>
+
+        <div>
+          <label>Tamaño KB</label>
+          <input class="form-control" id="tamanioKb" type="number" value="100">
+        </div>
+
+        <div>
+          <label>
+            <input type="checkbox" id="obligatorio">
+            Documento obligatorio
+          </label>
+        </div>
+
+        <div>
+          <button class="btn btn-primary" type="submit">
+            Agregar documento
+          </button>
+        </div>
+      </form>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Válido</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="documentos-table">
+            <tr><td colspan="5">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  window.solicitudId = '<%= solicitudId %>'
+</script>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/estudiante-detalle-solicitud.js' }) %>

@@ -41,12 +41,17 @@ async function apiPut(url, body = {}) {
 }
 
 function formatNumber(value) {
-  if (value === undefined || value === null) return '0'
+  if (value === undefined || value === null || value === '') return '0'
   return Number(value).toLocaleString('es-GT')
 }
 
+function formatMoney(value) {
+  if (value === undefined || value === null || value === '') return 'Q0'
+  return `Q${Number(value).toLocaleString('es-GT')}`
+}
+
 function riskBadge(risk) {
-  if (!risk) return '<span class="badge badge-bajo">SIN RIESGO</span>'
+  if (!risk) return '<span class="badge badge-info">SIN DATOS</span>'
 
   const normalized = String(risk).toLowerCase()
 
@@ -62,5 +67,43 @@ function riskBadge(risk) {
     return '<span class="badge badge-medio">MEDIO</span>'
   }
 
-  return '<span class="badge badge-bajo">BAJO</span>'
+  if (normalized.includes('bajo')) {
+    return '<span class="badge badge-bajo">BAJO</span>'
+  }
+
+  return `<span class="badge badge-info">${risk}</span>`
+}
+
+function statusBadge(status) {
+  if (!status) return '<span class="badge badge-info">SIN ESTADO</span>'
+
+  const normalized = String(status).toLowerCase()
+
+  if (normalized.includes('aprob')) {
+    return '<span class="badge badge-bajo">APROBADA</span>'
+  }
+
+  if (normalized.includes('rechaz')) {
+    return '<span class="badge badge-alto">RECHAZADA</span>'
+  }
+
+  if (normalized.includes('pend')) {
+    return '<span class="badge badge-medio">PENDIENTE</span>'
+  }
+
+  if (normalized.includes('revisión') || normalized.includes('revision')) {
+    return '<span class="badge badge-info">EN REVISIÓN</span>'
+  }
+
+  return `<span class="badge badge-info">${status}</span>`
+}
+
+function traducirTipoAlerta(tipo) {
+  const tipos = {
+    SHARED_ACCOUNT: 'Cuenta compartida',
+    REUSED_DOCUMENT: 'Documento reutilizado',
+    FRAUD_NETWORK: 'Red de fraude'
+  }
+
+  return tipos[tipo] || tipo || '-'
 }

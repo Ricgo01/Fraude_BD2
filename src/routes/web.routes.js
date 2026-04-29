@@ -22,9 +22,38 @@ router.get('/estudiante/dashboard', (req, res) => {
   })
 })
 
+router.get('/estudiante/perfil', (req, res) => {
+  res.render('estudiante/perfil', {
+    title: 'Mi Perfil',
+    role: 'estudiante'
+  })
+})
+
 router.get('/estudiante/solicitudes', (req, res) => {
   res.render('estudiante/solicitudes', {
     title: 'Mis Solicitudes',
+    role: 'estudiante'
+  })
+})
+
+router.get('/estudiante/solicitudes/nueva', (req, res) => {
+  res.render('estudiante/nueva-solicitud', {
+    title: 'Nueva Solicitud',
+    role: 'estudiante'
+  })
+})
+
+router.get('/estudiante/solicitudes/:id', (req, res) => {
+  res.render('estudiante/detalle-solicitud', {
+    title: 'Detalle de Solicitud',
+    role: 'estudiante',
+    solicitudId: req.params.id
+  })
+})
+
+router.get('/estudiante/documentos', (req, res) => {
+  res.render('estudiante/documentos', {
+    title: 'Mis Documentos',
     role: 'estudiante'
   })
 })

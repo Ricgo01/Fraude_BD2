@@ -1,0 +1,43 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+
+  <main class="content">
+    <div class="page-header">
+      <h1>Mis Documentos</h1>
+      <p>Consulta los documentos adjuntos a tus solicitudes.</p>
+    </div>
+
+    <section class="section">
+      <label>Filtrar por validez</label>
+      <select id="documento-filter" class="form-control" style="width: 260px;">
+        <option value="">Todos</option>
+        <option value="true">Válidos</option>
+        <option value="false">Rechazados</option>
+        <option value="pendiente">Pendientes</option>
+      </select>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Solicitud</th>
+              <th>Tipo</th>
+              <th>Estado revisión</th>
+              <th>Válido</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="documentos-table">
+            <tr><td colspan="6">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/estudiante-documentos.js' }) %>

@@ -3,29 +3,63 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 async function cargarDashboard() {
-  try {
-    const [alertStats, accountStats, pendingAlerts] = await Promise.all([
-      apiGet('/api/reports/alerts/stats'),
-      apiGet('/api/reports/accounts/stats'),
-      apiGet('/api/reports/alerts/pending')
-    ])
+  const message = document.getElementById('message')
 
-    const stats = alertStats.data || {}
-    const cuentasResumen = accountStats.resumen || {}
-    const alertas = pendingAlerts.data || []
+  const results = await Promise.allSettled([
+    apiGet('/api/reports/alerts/stats'),
+    apiGet('/api/reports/accounts/stats'),
+    apiGet('/api/reports/alerts/pending')
+  ])
+
+  const alertStatsResult = results[0]
+  const accountStatsResult = results[1]
+  const pendingAlertsResult = results[2]
+
+  // Alertas
+  if (alertStatsResult.status === 'fulfilled') {
+    const stats = alertStatsResult.value.data || {}
 
     document.getElementById('total-alertas').textContent = formatNumber(stats.total_alertas)
     document.getElementById('alertas-pendientes').textContent = formatNumber(stats.alertas_pendientes)
-    document.getElementById('cuentas-compartidas').textContent = formatNumber(cuentasResumen.cuentas_compartidas)
     document.getElementById('riesgo-promedio').textContent = stats.riesgo_promedio || 0
+  } else {
+    console.error('Error cargando estadísticas de alertas:', alertStatsResult.reason)
 
-    renderAlertas(alertas)
-  } catch (error) {
-    console.error(error)
-    document.getElementById('message').innerHTML = `
+    document.getElementById('total-alertas').textContent = '0'
+    document.getElementById('alertas-pendientes').textContent = '0'
+    document.getElementById('riesgo-promedio').textContent = '0'
+  }
+
+  // Cuentas
+  if (accountStatsResult.status === 'fulfilled') {
+    const cuentasResumen = accountStatsResult.value.resumen || {}
+
+    document.getElementById('cuentas-compartidas').textContent =
+      formatNumber(cuentasResumen.cuentas_compartidas)
+  } else {
+    console.error('Error cargando estadísticas de cuentas:', accountStatsResult.reason)
+
+    document.getElementById('cuentas-compartidas').textContent = '0'
+
+    message.innerHTML += `
       <div class="alert alert-error">
-        No se pudieron cargar los datos. Revisa que Neo4j esté corriendo y que la API funcione.
+        No se pudieron cargar las estadísticas de cuentas. Revisa el endpoint 
+        /api/reports/accounts/stats.
       </div>
+    `
+  }
+
+  // Alertas pendientes
+  if (pendingAlertsResult.status === 'fulfilled') {
+    const alertas = pendingAlertsResult.value.data || []
+    renderAlertas(alertas)
+  } else {
+    console.error('Error cargando alertas pendientes:', pendingAlertsResult.reason)
+
+    document.getElementById('alerts-table').innerHTML = `
+      <tr>
+        <td colspan="6">No se pudieron cargar las alertas pendientes.</td>
+      </tr>
     `
   }
 }
@@ -45,7 +79,7 @@ function renderAlertas(alertas) {
   tbody.innerHTML = alertas.slice(0, 8).map(alerta => `
     <tr>
       <td>${alerta.alerta_id || '-'}</td>
-      <td>${alerta.tipo_alerta || '-'}</td>
+      <td>${traducirTipoAlerta(alerta.tipo_alerta)}</td>
       <td>${riskBadge(alerta.nivel_riesgo)}</td>
       <td>${alerta.puntaje_riesgo || 0}</td>
       <td>${alerta.solicitud_id || '-'}</td>
@@ -64,7 +98,7 @@ async function ejecutarDeteccion() {
 
     document.getElementById('message').innerHTML = `
       <div class="alert alert-success">
-        Detección ejecutada correctamente. Alertas creadas: 
+        Detección ejecutada correctamente. Alertas creadas:
         ${result.resumen?.alertas_automáticas_creadas || 0}
       </div>
     `
@@ -72,6 +106,7 @@ async function ejecutarDeteccion() {
     await cargarDashboard()
   } catch (error) {
     console.error(error)
+
     document.getElementById('message').innerHTML = `
       <div class="alert alert-error">
         No se pudo ejecutar la detección automática.

@@ -122,37 +122,47 @@ class FraudController {
    * Retorna estadísticas de estudiantes por cuenta (agregación)
    */
   async getAccountStatistics(req, res) {
-    try {
-      console.log('[FraudController] GET /api/reports/accounts/stats');
-      const stats = await fraudService.countStudentsByAccount();
+  try {
+    console.log('[FraudController] GET /api/reports/accounts/stats');
+    const stats = await fraudService.countStudentsByAccount();
 
-      // Calcular adicionales
-      const totalCuentas = stats.length;
-      const cuentasCompartidas = stats.filter(s => s.es_compartida).length;
-      const prommedioEstudiantesPorCuenta = stats.length > 0
-        ? (stats.reduce((sum, s) => sum + s.numero_estudiantes, 0) / stats.length).toFixed(2)
-        : 0;
+    const totalCuentas = stats.length;
 
-      res.status(200).json({
-        success: true,
-        message: `Análisis de ${totalCuentas} cuenta(s)`,
-        resumen: {
-          total_cuentas: totalCuentas,
-          cuentas_compartidas: cuentasCompartidas,
-          promedio_estudiantes_por_cuenta: parseFloat(prommedioEstudiantesPorCuenta),
-        },
-        data: stats,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('[FraudController] Error en getAccountStatistics:', error.message);
-      res.status(500).json({
-        success: false,
-        message: 'Error obteniendo estadísticas de cuentas',
-        error: error.message,
-      });
-    }
+    const statsNormalizadas = stats.map(s => ({
+      ...s,
+      numero_estudiantes: Number(s.numero_estudiantes),
+    }));
+
+    const cuentasCompartidas = statsNormalizadas.filter(s => s.es_compartida).length;
+
+    const promedioEstudiantesPorCuenta = statsNormalizadas.length > 0
+      ? (
+          statsNormalizadas.reduce((sum, s) => {
+            return sum + Number(s.numero_estudiantes);
+          }, 0) / statsNormalizadas.length
+        ).toFixed(2)
+      : 0;
+
+    res.status(200).json({
+      success: true,
+      message: `Análisis de ${totalCuentas} cuenta(s)`,
+      resumen: {
+        total_cuentas: totalCuentas,
+        cuentas_compartidas: cuentasCompartidas,
+        promedio_estudiantes_por_cuenta: parseFloat(promedioEstudiantesPorCuenta),
+      },
+      data: statsNormalizadas,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[FraudController] Error en getAccountStatistics:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error obteniendo estadísticas de cuentas',
+      error: error.message,
+    });
   }
+}
 
   /**
    * GET /api/reports/scholarships/stats

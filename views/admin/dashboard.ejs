@@ -5,10 +5,10 @@
   <%- include('../partials/sidebar', { role }) %>
 
   <main class="content">
-    <div class="page-header">
+    <section class="hero-admin">
       <h1>Dashboard Administrativo</h1>
-      <p>Resumen general de alertas, cuentas, becas y riesgos detectados.</p>
-    </div>
+      <p>Vista general del sistema de becas, alertas y detección de fraude.</p>
+    </section>
 
     <div id="message"></div>
 
@@ -16,64 +16,61 @@
       <div class="card">
         <h3>Total alertas</h3>
         <strong id="total-alertas">0</strong>
+        <small>Alertas registradas</small>
       </div>
 
       <div class="card">
-        <h3>Alertas pendientes</h3>
+        <h3>Pendientes</h3>
         <strong id="alertas-pendientes">0</strong>
+        <small>Alertas sin resolver</small>
       </div>
 
       <div class="card">
         <h3>Cuentas compartidas</h3>
         <strong id="cuentas-compartidas">0</strong>
+        <small>Posibles casos de riesgo</small>
       </div>
 
       <div class="card">
         <h3>Riesgo promedio</h3>
         <strong id="riesgo-promedio">0</strong>
+        <small>Puntaje consolidado</small>
       </div>
     </section>
 
     <section class="section">
-      <h2>Alertas pendientes recientes</h2>
-      <p>Alertas automáticas generadas por el sistema y pendientes de resolución.</p>
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Alertas pendientes recientes</h2>
+          <p>Alertas automáticas que requieren revisión administrativa.</p>
+        </div>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID alerta</th>
-            <th>Tipo</th>
-            <th>Nivel</th>
-            <th>Puntaje</th>
-            <th>Solicitud</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody id="alerts-table">
-          <tr>
-            <td colspan="6">Cargando datos...</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+        <button class="btn btn-primary" onclick="ejecutarDeteccion()">
+          Ejecutar detección automática
+        </button>
+      </div>
 
-    <section class="section">
-      <h2>Acciones rápidas</h2>
-      <button class="btn btn-primary" onclick="ejecutarDeteccion()">
-        Ejecutar detección automática
-      </button>
-
-      <a href="/admin/alertas" class="btn btn-secondary">
-        Ver alertas
-      </a>
-
-      <a href="/admin/fraude" class="btn btn-secondary">
-        Ver reportes de fraude
-      </a>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID alerta</th>
+              <th>Tipo</th>
+              <th>Nivel</th>
+              <th>Puntaje</th>
+              <th>Solicitud</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-table">
+            <tr>
+              <td colspan="6">Cargando datos...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
 </div>
 
-<script src="/js/pages/admin-dashboard.js"></script>
-
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-dashboard.js' }) %>

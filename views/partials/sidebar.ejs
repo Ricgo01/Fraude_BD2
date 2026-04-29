@@ -1,13 +1,5 @@
 <aside class="sidebar">
-  <% if (role === 'estudiante') { %>
-    <a href="/estudiante/dashboard">Dashboard</a>
-    <a href="/estudiante/solicitudes">Mis solicitudes</a>
-  <% } %>
-
-  <% if (role === 'revisor') { %>
-    <a href="/revisor/dashboard">Dashboard</a>
-    <a href="/revisor/solicitudes">Solicitudes pendientes</a>
-  <% } %>
+  <p class="sidebar-title">Menú principal</p>
 
   <% if (role === 'admin') { %>
     <a href="/admin/dashboard">Dashboard</a>
@@ -16,5 +8,15 @@
     <a href="/admin/reportes">Reportes</a>
     <a href="/admin/becas">Becas</a>
     <a href="/admin/usuarios">Usuarios</a>
+  <% } %>
+
+  <% if (role === 'revisor') { %>
+    <a href="/revisor/dashboard">Dashboard</a>
+    <a href="/revisor/solicitudes">Solicitudes pendientes</a>
+  <% } %>
+
+  <% if (role === 'estudiante') { %>
+    <a href="/estudiante/dashboard">Dashboard</a>
+    <a href="/estudiante/solicitudes">Mis solicitudes</a>
   <% } %>
 </aside>
