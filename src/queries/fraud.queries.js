@@ -57,10 +57,10 @@ const SHARED_ACCOUNTS_QUERY = `
  * Retorna: { hash, tipo, num_documentos, num_estudiantes, documentos: [...], estudiantes: [...] }
  */
 const REUSED_DOCUMENTS_QUERY = `
-  MATCH (doc1:Documento)-[:ADJUNTA]-(sol1:Solicitud)-[:ENVIA]-(est1:Estudiante)
+  MATCH (est1:Estudiante)-[:ENVIA]->(sol1:Solicitud)-[:ADJUNTA]->(doc1:Documento)
   WITH doc1.Hash AS hash, COUNT(DISTINCT est1.ID) AS num_estudiantes
   WHERE num_estudiantes > 1
-  MATCH (doc:Documento)-[:ADJUNTA]-(sol:Solicitud)-[:ENVIA]-(est:Estudiante)
+  MATCH (est:Estudiante)-[:ENVIA]->(sol:Solicitud)-[:ADJUNTA]->(doc:Documento)
   WHERE doc.Hash = hash
   WITH hash, num_estudiantes, 
        COLLECT(DISTINCT {

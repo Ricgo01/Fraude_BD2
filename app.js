@@ -14,10 +14,10 @@ app.set('views', './views')
 
 // Rutas
 app.use('/api/reports', require('./src/routes/fraud.routes'))
-// app.use('/api/estudiante', require('./src/routes/estudiante.routes'))
-// app.use('/api/solicitud',  require('./src/routes/solicitud.routes'))
-// app.use('/api/admin',      require('./src/routes/admin.routes'))
-
+app.use('/auth', require('./src/routes/auth.routes'))
+app.use('/estudiante', require('./src/routes/estudiante.routes'))
+app.use('/revisor', require('./src/routes/revisor.routes'))
+app.use('/admin', require('./src/routes/admin.routes'))
 // Inicio
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
