@@ -1,12 +1,104 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title }) %>
 <%- include('../partials/navbar', { title, role }) %>
 
 <div class="layout">
   <%- include('../partials/sidebar', { role }) %>
   <main class="content">
-    <h1>Gestión de Becas</h1>
-    <p>Aquí se administrarán las becas disponibles.</p>
+    <div class="page-header">
+      <h1>Gestion de Becas</h1>
+      <p>Crea programas y revisa estadisticas de solicitudes por beca.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <h2>Nueva beca</h2>
+      <form id="beca-form" class="grid-2">
+        <div>
+          <label>Nombre de la beca</label>
+          <input class="form-control" id="nombreBeca" required>
+        </div>
+
+        <div>
+          <label>Categoria</label>
+          <input class="form-control" id="categoria" required>
+        </div>
+
+        <div>
+          <label>Monto maximo</label>
+          <input class="form-control" id="montoMax" type="number" required>
+        </div>
+
+        <div>
+          <label>Renovable</label>
+          <select class="form-control" id="renovable">
+            <option value="true">Si</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Fecha de inicio</label>
+          <input class="form-control" id="fechaInicio" type="date" required>
+        </div>
+      </form>
+
+      <button class="btn btn-primary" onclick="crearBeca()">Crear beca</button>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Estadisticas por beca</h2>
+          <p>Promedio, minimo y maximo de montos solicitados.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarBecasStats()">Actualizar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Categoria</th>
+              <th>Solicitudes</th>
+              <th>Promedio</th>
+              <th>Minimo</th>
+              <th>Maximo</th>
+            </tr>
+          </thead>
+          <tbody id="becas-table">
+            <tr><td colspan="7">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Filtrar estudiantes por promedio</h2>
+      <div class="actions">
+        <input class="form-control" id="becaFiltroId" placeholder="ID de beca" style="max-width: 260px;">
+        <button class="btn btn-secondary" onclick="filtrarEstudiantes()">Buscar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Promedio</th>
+            </tr>
+          </thead>
+          <tbody id="estudiantes-table">
+            <tr><td colspan="4">Ingresa un ID de beca.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-becas.js' }) %>

@@ -1,0 +1,28 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Carga CSV</h1>
+      <p>Importa estudiantes desde un archivo CSV con columnas Nombre_Completo, Email, Fecha_Nacimiento, Promedio.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <h2>Subir archivo</h2>
+      <form id="csv-form" class="actions">
+        <input class="form-control" type="file" id="csvFile" accept=".csv" required>
+        <button class="btn btn-primary" type="submit">Cargar CSV</button>
+      </form>
+
+      <div class="alert alert-info">
+        El archivo debe estar en formato CSV y usar separador por comas.
+      </div>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-carga-csv.js' }) %>

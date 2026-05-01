@@ -1,0 +1,50 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+    <%- include('../partials/sidebar', { role }) %>
+    <main class="content">
+        <div class="page-header">
+            <h1>Solicitudes asignadas</h1>
+            <p>Solicitudes pendientes y consultas por nivel de riesgo.</p>
+        </div>
+
+        <div id="message"></div>
+
+        <section class="section">
+            <div class="actions" style="justify-content: space-between;">
+                <div class="actions">
+                    <label>Nivel de riesgo</label>
+                    <select class="form-control" id="riesgo-filter" style="width: 200px;">
+                        <option value="">Pendientes</option>
+                        <option value="bajo">Bajo</option>
+                        <option value="medio">Medio</option>
+                        <option value="alto">Alto</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="cargarSolicitudes()">Actualizar</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Beca</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Riesgo</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requests-table">
+                        <tr><td colspan="7">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/reviewer-requests.js' }) %>

@@ -1,4 +1,4 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title }) %>
 <%- include('../partials/navbar', { title, role }) %>
 
 <div class="layout">
@@ -24,8 +24,8 @@
       </div>
 
       <div class="card">
-        <h3>En revisión</h3>
-        <strong id="solicitudes-revision">0</strong>
+        <h3>Aprobadas</h3>
+        <strong id="solicitudes-aprobadas">0</strong>
       </div>
 
       <div class="card">
@@ -43,11 +43,10 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Beca</th>
               <th>Monto</th>
               <th>Estado</th>
               <th>Fecha</th>
-              <th>Acción</th>
+              <th>Accion</th>
             </tr>
           </thead>
           <tbody id="solicitudes-table">

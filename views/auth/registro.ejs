@@ -1,0 +1,53 @@
+<%- include('../partials/header', { title: 'Registro', bodyClass: 'auth-body' }) %>
+
+<main class="auth-layout">
+  <section class="auth-card auth-card-wide">
+    <div class="auth-header">
+      <h1>Registro de usuario</h1>
+      <p>Crea tu cuenta como estudiante o revisor.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <form id="registro-form" class="auth-form">
+      <div class="grid-2">
+        <div>
+          <label>Nombre completo</label>
+          <input class="form-control" id="nombre" required>
+        </div>
+
+        <div>
+          <label>Correo electronico</label>
+          <input class="form-control" type="email" id="email" required>
+        </div>
+
+        <div>
+          <label>Fecha de nacimiento</label>
+          <input class="form-control" type="date" id="fechaNacimiento" required>
+        </div>
+
+        <div>
+          <label>Promedio</label>
+          <input class="form-control" type="number" id="promedio" step="0.01" required>
+        </div>
+
+        <div>
+          <label>Rol</label>
+          <select class="form-control" id="rol" required>
+            <option value="estudiante">Estudiante</option>
+            <option value="revisor">Revisor</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Registrar</button>
+    </form>
+
+    <p class="auth-footer">
+      Ya tienes cuenta?
+      <a href="/login">Inicia sesion</a>
+    </p>
+  </section>
+</main>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/registro.js' }) %>

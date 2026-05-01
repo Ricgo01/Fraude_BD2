@@ -1,0 +1,74 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Gestion de Revisores</h1>
+      <p>Alta de revisores y listado de revisores activos.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <h2>Crear revisor</h2>
+      <form id="revisor-form" class="grid-2">
+        <div>
+          <label>Nombre</label>
+          <input class="form-control" id="revisorNombre" required>
+        </div>
+
+        <div>
+          <label>Rol interno</label>
+          <input class="form-control" id="revisorRol" placeholder="Analista" required>
+        </div>
+
+        <div>
+          <label>Email</label>
+          <input class="form-control" type="email" id="revisorEmail" required>
+        </div>
+
+        <div>
+          <label>Fecha de ingreso</label>
+          <input class="form-control" type="date" id="revisorFecha" required>
+        </div>
+
+        <div>
+          <label>Especialidades (separadas por coma)</label>
+          <input class="form-control" id="revisorEspecialidades" placeholder="Fraude, Pagos">
+        </div>
+      </form>
+      <button class="btn btn-primary" onclick="crearRevisor()">Crear revisor</button>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Revisores activos</h2>
+          <p>Listado de revisores con estado activo.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarRevisores()">Actualizar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Especialidades</th>
+            </tr>
+          </thead>
+          <tbody id="revisores-table">
+            <tr><td colspan="5">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-revisores.js' }) %>

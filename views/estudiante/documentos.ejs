@@ -1,4 +1,4 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title }) %>
 <%- include('../partials/navbar', { title, role }) %>
 
 <div class="layout">
@@ -10,13 +10,37 @@
       <p>Consulta los documentos adjuntos a tus solicitudes.</p>
     </div>
 
+    <div id="message"></div>
+
+    <section class="section">
+      <h2>Nuevo documento</h2>
+      <form id="documento-form" class="grid-2">
+        <div>
+          <label>ID solicitud</label>
+          <input class="form-control" id="solicitudId" required>
+        </div>
+        <div>
+          <label>Tipo</label>
+          <input class="form-control" id="tipo" required>
+        </div>
+        <div>
+          <label>Hash</label>
+          <input class="form-control" id="hash" required>
+        </div>
+        <div>
+          <label>Palabras clave</label>
+          <input class="form-control" id="palabras" placeholder="fraude, beca" required>
+        </div>
+      </form>
+      <button class="btn btn-primary" onclick="crearDocumento()">Adjuntar documento</button>
+    </section>
+
     <section class="section">
       <label>Filtrar por validez</label>
       <select id="documento-filter" class="form-control" style="width: 260px;">
         <option value="">Todos</option>
-        <option value="true">Válidos</option>
+        <option value="true">Validos</option>
         <option value="false">Rechazados</option>
-        <option value="pendiente">Pendientes</option>
       </select>
 
       <div class="table-wrapper">
@@ -24,15 +48,13 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Solicitud</th>
               <th>Tipo</th>
-              <th>Estado revisión</th>
-              <th>Válido</th>
+              <th>Valido</th>
               <th>Fecha</th>
             </tr>
           </thead>
           <tbody id="documentos-table">
-            <tr><td colspan="6">Cargando...</td></tr>
+            <tr><td colspan="4">Cargando...</td></tr>
           </tbody>
         </table>
       </div>

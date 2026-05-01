@@ -1,22 +1,30 @@
-<aside class="sidebar">
-  <p class="sidebar-title">Menú principal</p>
+<aside class="sidebar" data-role="<%= role %>">
+  <p class="sidebar-title">Menu principal</p>
 
   <% if (role === 'admin') { %>
     <a href="/admin/dashboard">Dashboard</a>
-    <a href="/admin/alertas">Alertas</a>
-    <a href="/admin/fraude">Detección de fraude</a>
-    <a href="/admin/reportes">Reportes</a>
     <a href="/admin/becas">Becas</a>
-    <a href="/admin/usuarios">Usuarios</a>
+    <a href="/admin/revisores">Revisores</a>
+    <a href="/admin/alertas">Alertas</a>
+    <a href="/admin/fraude">Fraude</a>
+    <a href="/admin/agregaciones">Agregaciones</a>
+    <a href="/admin/carga-csv">Carga CSV</a>
   <% } %>
 
   <% if (role === 'revisor') { %>
     <a href="/revisor/dashboard">Dashboard</a>
-    <a href="/revisor/solicitudes">Solicitudes pendientes</a>
+    <a href="/revisor/solicitudes">Solicitudes</a>
   <% } %>
 
   <% if (role === 'estudiante') { %>
     <a href="/estudiante/dashboard">Dashboard</a>
-    <a href="/estudiante/solicitudes">Mis solicitudes</a>
+    <a href="/estudiante/perfil">Perfil</a>
+    <a href="/estudiante/solicitudes">Solicitudes</a>
+    <a href="/estudiante/documentos">Documentos</a>
+    <a href="/estudiante/cuenta">Cuenta</a>
+    <a href="/estudiante/direccion">Direccion</a>
+    <a href="/estudiante/institucion">Institucion</a>
+    <a href="/estudiante/dispositivo">Dispositivo</a>
+    <a href="/estudiante/referencia">Referencia</a>
   <% } %>
 </aside>

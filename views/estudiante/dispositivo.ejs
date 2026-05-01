@@ -1,0 +1,32 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Dispositivo</h1>
+      <p>Registra el dispositivo utilizado para ingresar al sistema.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <form id="dispositivo-form" class="grid-2">
+        <div>
+          <label>Navegador</label>
+          <input class="form-control" id="navegador" placeholder="Chrome, Edge" required>
+        </div>
+
+        <div>
+          <label>Sistema operativo</label>
+          <input class="form-control" id="sistema" placeholder="Windows, macOS" required>
+        </div>
+      </form>
+
+      <button class="btn btn-primary" onclick="guardarDispositivo()">Guardar dispositivo</button>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/estudiante-dispositivo.js' }) %>

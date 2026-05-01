@@ -1,0 +1,66 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Cuenta Bancaria</h1>
+      <p>Registra o actualiza la cuenta asociada a tus solicitudes.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <form id="cuenta-form" class="grid-2">
+        <div>
+          <label>Banco</label>
+          <input class="form-control" id="banco" required>
+        </div>
+
+        <div>
+          <label>Tipo de cuenta</label>
+          <input class="form-control" id="tipoCuenta" required>
+        </div>
+
+        <div>
+          <label>Terminacion</label>
+          <input class="form-control" id="terminacion" type="number" required>
+        </div>
+
+        <div>
+          <label>Activa</label>
+          <select class="form-control" id="activa">
+            <option value="true">Si</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Fecha de registro</label>
+          <input class="form-control" id="fechaRegistro" type="date" required>
+        </div>
+
+        <div>
+          <label>Principal</label>
+          <select class="form-control" id="principal">
+            <option value="true">Si</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Verificada</label>
+          <select class="form-control" id="verificada">
+            <option value="true">Si</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+      </form>
+
+      <button class="btn btn-primary" onclick="guardarCuenta()">Guardar cuenta</button>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/estudiante-cuenta.js' }) %>

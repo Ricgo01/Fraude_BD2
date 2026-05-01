@@ -1,12 +1,107 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title }) %>
 <%- include('../partials/navbar', { title, role }) %>
 
 <div class="layout">
   <%- include('../partials/sidebar', { role }) %>
   <main class="content">
-    <h1>Detección de Fraude</h1>
-    <p>Aquí se mostrarán cuentas compartidas, documentos reutilizados y redes de fraude.</p>
+    <div class="page-header">
+      <h1>Deteccion de Fraude</h1>
+      <p>Resultados de las consultas de cuentas compartidas, documentos reutilizados y redes.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Deteccion automatica</h2>
+          <p>Ejecuta la regla automatica que genera alertas.</p>
+        </div>
+        <button class="btn btn-primary" onclick="ejecutarDeteccion()">Ejecutar check-all</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Cuentas compartidas</h2>
+          <p>Estudiantes que comparten la misma cuenta bancaria.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarCuentasCompartidas()">Actualizar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID Cuenta</th>
+              <th>Banco</th>
+              <th>Estudiantes</th>
+              <th>Solicitudes</th>
+              <th>Riesgo</th>
+            </tr>
+          </thead>
+          <tbody id="shared-accounts-table">
+            <tr><td colspan="5">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Documentos reutilizados</h2>
+          <p>Hashes repetidos en solicitudes de distintos estudiantes.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarDocumentosReutilizados()">Actualizar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Hash</th>
+              <th>Estudiantes</th>
+              <th>Documentos</th>
+              <th>Solicitudes</th>
+              <th>Riesgo</th>
+            </tr>
+          </thead>
+          <tbody id="reused-documents-table">
+            <tr><td colspan="5">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Redes de fraude</h2>
+          <p>Estudiantes que comparten cuenta y dispositivo.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarRedFraude()">Actualizar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Cuenta</th>
+              <th>Dispositivo</th>
+              <th>Estudiantes</th>
+              <th>Solicitudes</th>
+              <th>Riesgo</th>
+            </tr>
+          </thead>
+          <tbody id="fraud-network-table">
+            <tr><td colspan="5">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-fraude.js' }) %>

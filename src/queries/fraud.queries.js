@@ -57,10 +57,10 @@ const SHARED_ACCOUNTS_QUERY = `
  * Retorna: { hash, tipo, num_documentos, num_estudiantes, documentos: [...], estudiantes: [...] }
  */
 const REUSED_DOCUMENTS_QUERY = `
-  MATCH (doc1:Documento)-[:ADJUNTA]-(sol1:Solicitud)-[:ENVIA]-(est1:Estudiante)
+  MATCH (est1:Estudiante)-[:ENVIA]->(sol1:Solicitud)-[:ADJUNTA]->(doc1:Documento)
   WITH doc1.Hash AS hash, COUNT(DISTINCT est1.ID) AS num_estudiantes
   WHERE num_estudiantes > 1
-  MATCH (doc:Documento)-[:ADJUNTA]-(sol:Solicitud)-[:ENVIA]-(est:Estudiante)
+  MATCH (est:Estudiante)-[:ENVIA]->(sol:Solicitud)-[:ADJUNTA]->(doc:Documento)
   WHERE doc.Hash = hash
   WITH hash, num_estudiantes, 
        COLLECT(DISTINCT {
@@ -105,11 +105,13 @@ const FRAUD_NETWORK_QUERY = `
         (e2:Estudiante)-[:USA_CUENTA]->(c),
         (e2)-[:USA_DISPOSITIVO]->(d)
   WHERE e1.ID < e2.ID
-  WITH c, d, COLLECT(DISTINCT e1.ID) + COLLECT(DISTINCT e2.ID) AS estudiantes_conectados
-  WHERE SIZE(APOC.coll.toSet(estudiantes_conectados)) > 1
+  WITH c, d, COLLECT(DISTINCT e1) + COLLECT(DISTINCT e2) AS estudiantes_raw
+  UNWIND estudiantes_raw AS est
+  WITH c, d, COLLECT(DISTINCT est) AS estudiantes
+  WHERE SIZE(estudiantes) > 1
   MATCH (e:Estudiante)
-  WHERE e.ID IN estudiantes_conectados
-  WITH c, d, estudiantes_conectados,
+  WHERE e IN estudiantes
+  WITH c, d, estudiantes,
        COLLECT(DISTINCT {
          id: e.ID,
          nombre: e.Nombre_Completo,
@@ -117,7 +119,7 @@ const FRAUD_NETWORK_QUERY = `
          activo: e.Activo
        }) AS detalles_estudiantes
   MATCH (s:Solicitud)<-[:ENVIA]-(e:Estudiante)
-  WHERE e.ID IN estudiantes_conectados
+  WHERE e IN estudiantes
   WITH c, d, detalles_estudiantes,
        COLLECT(DISTINCT {
          id: s.ID,

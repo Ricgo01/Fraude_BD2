@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  if (!requireAuth('admin')) return
   cargarAlertas()
 })
 

@@ -1,0 +1,71 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+    <%- include('../partials/sidebar', { role }) %>
+
+    <main class="content">
+        <section class="hero-admin">
+            <h1>Dashboard del Revisor</h1>
+            <p>Solicitudes asignadas, pendientes y niveles de riesgo.</p>
+        </section>
+
+        <div id="message"></div>
+
+        <section class="cards">
+            <div class="card">
+                <h3>Pendientes</h3>
+                <strong id="pendientes-count">0</strong>
+                <small>Solicitudes por resolver</small>
+            </div>
+
+            <div class="card">
+                <h3>Riesgo alto</h3>
+                <strong id="riesgo-alto-count">0</strong>
+                <small>Con alertas criticas</small>
+            </div>
+
+            <div class="card">
+                <h3>Riesgo medio</h3>
+                <strong id="riesgo-medio-count">0</strong>
+                <small>Alertas moderadas</small>
+            </div>
+
+            <div class="card">
+                <h3>Riesgo bajo</h3>
+                <strong id="riesgo-bajo-count">0</strong>
+                <small>Casos de baja prioridad</small>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="actions" style="justify-content: space-between;">
+                <div>
+                    <h2>Solicitudes pendientes</h2>
+                    <p>Listado de solicitudes asignadas a revisar.</p>
+                </div>
+                <button class="btn btn-secondary" onclick="cargarDashboardRevisor()">Actualizar</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Beca</th>
+                            <th>Monto</th>
+                            <th>Fecha</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendientes-table">
+                        <tr><td colspan="6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/reviewer-dashboard.js' }) %>

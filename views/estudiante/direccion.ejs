@@ -1,0 +1,55 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Direccion</h1>
+      <p>Actualiza la informacion de residencia.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <form id="direccion-form" class="grid-2">
+        <div>
+          <label>Direccion</label>
+          <input class="form-control" id="direccion" required>
+        </div>
+
+        <div>
+          <label>Municipio</label>
+          <input class="form-control" id="municipio" required>
+        </div>
+
+        <div>
+          <label>Departamento</label>
+          <input class="form-control" id="departamento" required>
+        </div>
+
+        <div>
+          <label>Verificada</label>
+          <select class="form-control" id="verificada">
+            <option value="true">Si</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Desde fecha</label>
+          <input class="form-control" id="desdeFecha" type="date" required>
+        </div>
+
+        <div>
+          <label>Tipo de residencia</label>
+          <input class="form-control" id="tipoResidencia" placeholder="Propia / Alquilada" required>
+        </div>
+      </form>
+
+      <button class="btn btn-primary" onclick="guardarDireccion()">Guardar direccion</button>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/estudiante-direccion.js' }) %>

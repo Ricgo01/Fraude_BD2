@@ -1,0 +1,264 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Agregaciones y Gestion</h1>
+      <p>Resumenes, filtros y acciones administrativas sobre datos y relaciones.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Resumen general</h2>
+          <p>Agregaciones consolidadas del grafo.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarAgregaciones()">Actualizar</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Max puntaje riesgo</h3>
+          <strong id="max-riesgo">0</strong>
+        </div>
+        <div class="card">
+          <h3>Min promedio</h3>
+          <strong id="min-promedio">0</strong>
+        </div>
+        <div class="card">
+          <h3>Depositos</h3>
+          <strong id="sum-depositos">Q0</strong>
+        </div>
+        <div class="card">
+          <h3>Documentos relacionados</h3>
+          <strong id="doc-rel">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Solicitudes por estado</h2>
+          <p>Distribucion de solicitudes registradas.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarSolicitudesEstados()">Actualizar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Estado</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="solicitudes-estado-table">
+            <tr><td colspan="2">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Pendientes por revisor</h2>
+      <div class="actions">
+        <input class="form-control" id="pendiente-revisor-id" placeholder="ID del revisor" style="max-width: 240px;">
+        <button class="btn btn-secondary" onclick="cargarPendientesRevisor()">Buscar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Solicitud</th>
+              <th>Estudiante</th>
+              <th>Monto</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="pendientes-revisor-table">
+            <tr><td colspan="5">Ingresa un ID de revisor.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Estadisticas de cuentas</h2>
+          <p>Conteo de estudiantes por cuenta.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarCuentasStats()">Actualizar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID Cuenta</th>
+              <th>Banco</th>
+              <th>Estudiantes</th>
+              <th>Compartida</th>
+            </tr>
+          </thead>
+          <tbody id="cuentas-table">
+            <tr><td colspan="4">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <section class="section">
+        <div class="actions" style="justify-content: space-between;">
+          <div>
+            <h2>Documentos invalidos</h2>
+            <p>Documentos con flag invalido.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="cargarDocumentosInvalidos()">Actualizar</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="documentos-invalidos-table">
+              <tr><td colspan="3">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="actions" style="justify-content: space-between;">
+          <div>
+            <h2>Pagos fallidos</h2>
+            <p>Pagos con multiples intentos.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="cargarPagosFallidos()">Actualizar</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Monto</th>
+                <th>Intentos</th>
+              </tr>
+            </thead>
+            <tbody id="pagos-fallidos-table">
+              <tr><td colspan="3">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <section class="section">
+      <h2>Gestion de propiedades y eliminacion</h2>
+      <p>Acciones directas sobre nodos y relaciones.</p>
+
+      <div class="grid-2">
+        <div class="form-card">
+          <h3>Agregar observacion alerta</h3>
+          <input class="form-control" id="obs-alerta-id" placeholder="ID alerta">
+          <input class="form-control" id="obs-alerta-texto" placeholder="Observacion">
+          <button class="btn btn-secondary" onclick="agregarObservacion()">Guardar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Actualizar nivel de riesgo</h3>
+          <input class="form-control" id="riesgo-alerta-id" placeholder="ID alerta">
+          <select class="form-control" id="riesgo-alerta-nivel">
+            <option value="BAJO">BAJO</option>
+            <option value="MEDIO">MEDIO</option>
+            <option value="ALTO">ALTO</option>
+            <option value="CRITICO">CRITICO</option>
+          </select>
+          <button class="btn btn-secondary" onclick="actualizarNivelRiesgo()">Actualizar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Auditar solicitudes</h3>
+          <input class="form-control" id="auditar-solicitudes" placeholder="IDs separados por coma">
+          <button class="btn btn-secondary" onclick="auditarSolicitudes()">Auditar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Desactivar estudiantes</h3>
+          <input class="form-control" id="desactivar-estudiantes" placeholder="IDs separados por coma">
+          <button class="btn btn-secondary" onclick="desactivarEstudiantes()">Desactivar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Eliminar IP hash</h3>
+          <input class="form-control" id="dispositivo-id" placeholder="ID dispositivo">
+          <button class="btn btn-secondary" onclick="eliminarIPHash()">Eliminar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Eliminar campo observacion</h3>
+          <input class="form-control" id="alertas-campo" placeholder="IDs separados por coma">
+          <button class="btn btn-secondary" onclick="eliminarCampoAlertas()">Eliminar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Eliminar alertas resueltas</h3>
+          <input class="form-control" id="alertas-resueltas" placeholder="IDs separados por coma">
+          <button class="btn btn-danger" onclick="eliminarAlertasResueltas()">Eliminar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Eliminar alerta por ID</h3>
+          <input class="form-control" id="alerta-eliminar-id" placeholder="ID alerta">
+          <button class="btn btn-danger" onclick="eliminarAlerta()">Eliminar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Auditar adjuntas</h3>
+          <input class="form-control" id="auditar-adjuntas" placeholder="IDs solicitud separados por coma">
+          <button class="btn btn-secondary" onclick="auditarAdjuntas()">Auditar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Desauditar adjuntas</h3>
+          <input class="form-control" id="desauditar-adjuntas" placeholder="IDs solicitud separados por coma">
+          <button class="btn btn-secondary" onclick="desauditarAdjuntas()">Eliminar auditado</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Actualizar estado alerta</h3>
+          <input class="form-control" id="estado-alerta-ids" placeholder="IDs alerta separados por coma">
+          <input class="form-control" id="estado-alerta" placeholder="Estado alerta">
+          <button class="btn btn-secondary" onclick="actualizarEstadoAlertas()">Actualizar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Eliminar relaciones GENERA_ALERTA</h3>
+          <input class="form-control" id="relaciones-alerta" placeholder="IDs alerta separados por coma">
+          <button class="btn btn-danger" onclick="eliminarRelacionesAlertas()">Eliminar</button>
+        </div>
+
+        <div class="form-card">
+          <h3>Eliminar nota de revision</h3>
+          <input class="form-control" id="nota-solicitud-id" placeholder="ID solicitud">
+          <input class="form-control" id="nota-revisor-id" placeholder="ID revisor">
+          <button class="btn btn-danger" onclick="eliminarNotaRevision()">Eliminar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-agregaciones.js' }) %>

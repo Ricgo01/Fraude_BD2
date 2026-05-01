@@ -1,4 +1,4 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title }) %>
 <%- include('../partials/navbar', { title, role }) %>
 
 <div class="layout">
@@ -10,16 +10,17 @@
       <p>Consulta tus solicitudes y filtra por estado.</p>
     </div>
 
+    <div id="message"></div>
+
     <section class="section">
       <div class="actions" style="justify-content: space-between;">
         <div>
           <label>Filtrar por estado</label>
           <select id="estado-filter" class="form-control" style="width: 240px;">
-            <option>Todas</option>
-            <option>Pendiente</option>
-            <option>En Revisión</option>
-            <option>Aprobada</option>
-            <option>Rechazada</option>
+            <option value="">Todas</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Aprobada">Aprobada</option>
+            <option value="Rechazada">Rechazada</option>
           </select>
         </div>
 
@@ -33,16 +34,14 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Beca</th>
               <th>Monto</th>
               <th>Estado</th>
               <th>Fecha</th>
-              <th>Cumple reglas</th>
-              <th>Acción</th>
+              <th>Accion</th>
             </tr>
           </thead>
           <tbody id="solicitudes-table">
-            <tr><td colspan="7">Cargando...</td></tr>
+            <tr><td colspan="5">Cargando...</td></tr>
           </tbody>
         </table>
       </div>

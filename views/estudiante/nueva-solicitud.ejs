@@ -1,4 +1,4 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title }) %>
 <%- include('../partials/navbar', { title, role }) %>
 
 <div class="layout">
@@ -6,48 +6,41 @@
 
   <main class="content">
     <div class="page-header">
-      <h1>Mis Solicitudes</h1>
-      <p>Consulta tus solicitudes y filtra por estado.</p>
+      <h1>Nueva Solicitud</h1>
+      <p>Registra una nueva solicitud de beca.</p>
     </div>
 
+    <div id="message"></div>
+
     <section class="section">
-      <div class="actions" style="justify-content: space-between;">
+      <form id="solicitud-form" class="grid-2">
         <div>
-          <label>Filtrar por estado</label>
-          <select id="estado-filter" class="form-control" style="width: 240px;">
-            <option>Todas</option>
-            <option>Pendiente</option>
-            <option>En Revisión</option>
-            <option>Aprobada</option>
-            <option>Rechazada</option>
+          <label>Motivo de apoyo</label>
+          <textarea class="form-control" id="motivo" rows="4" required></textarea>
+        </div>
+
+        <div>
+          <label>Monto solicitado</label>
+          <input class="form-control" type="number" id="monto" required>
+        </div>
+
+        <div>
+          <label>Apoyo total</label>
+          <select class="form-control" id="apoyoTotal">
+            <option value="true">Si</option>
+            <option value="false">No</option>
           </select>
         </div>
 
-        <a class="btn btn-primary" href="/estudiante/solicitudes/nueva">
-          Nueva solicitud
-        </a>
-      </div>
+        <div>
+          <label>ID de beca</label>
+          <input class="form-control" id="becaId" placeholder="ID de la beca" required>
+        </div>
+      </form>
 
-      <div class="table-wrapper">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Beca</th>
-              <th>Monto</th>
-              <th>Estado</th>
-              <th>Fecha</th>
-              <th>Cumple reglas</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody id="solicitudes-table">
-            <tr><td colspan="7">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <button class="btn btn-primary" onclick="crearSolicitud()">Crear solicitud</button>
     </section>
   </main>
 </div>
 
-<%- include('../partials/footer', { pageScript: '/js/pages/estudiante-solicitudes.js' }) %>
+<%- include('../partials/footer', { pageScript: '/js/pages/estudiante-nueva-solicitud.js' }) %>

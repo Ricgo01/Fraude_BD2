@@ -1,4 +1,4 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title }) %>
 <%- include('../partials/navbar', { title, role }) %>
 
 <div class="layout">
@@ -48,6 +48,4 @@
   </main>
 </div>
 
-<script src="/js/pages/admin-alertas.js"></script>
-
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-alertas.js' }) %>

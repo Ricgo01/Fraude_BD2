@@ -26,7 +26,5 @@ function normalizeNeo4jProperties(obj) {
     return obj;
 }
 
-module.exports = {
-    driver,
-    normalizeNeo4jProperties
-}
+module.exports = driver
+module.exports.normalizeNeo4jProperties = normalizeNeo4jProperties

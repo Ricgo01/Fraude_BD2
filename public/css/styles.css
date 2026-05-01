@@ -33,7 +33,7 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: "Space Grotesk", "Plus Jakarta Sans", sans-serif;
   background: linear-gradient(135deg, var(--gray-bg), var(--beige));
   color: var(--dark);
 }
@@ -66,6 +66,13 @@ body {
   align-items: center;
   gap: 14px;
   font-size: 14px;
+}
+
+.navbar-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .navbar-user a {
@@ -122,6 +129,51 @@ body {
   padding: 30px;
 }
 
+.auth-body {
+  background: radial-gradient(circle at top, rgba(37, 99, 235, 0.2), transparent 50%),
+              linear-gradient(135deg, var(--gray-bg), var(--beige));
+}
+
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  background: var(--white);
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--gray-border);
+}
+
+.auth-card-wide {
+  width: min(680px, 100%);
+}
+
+.auth-header h1 {
+  margin: 0 0 6px;
+}
+
+.auth-header p {
+  margin: 0 0 18px;
+  color: var(--gray-text);
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-footer {
+  margin-top: 16px;
+  color: var(--gray-text);
+}
+
 .page-header {
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--gray-border);
@@ -158,6 +210,18 @@ body {
   overflow: hidden;
 }
 
+.link-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(23, 32, 51, 0.12);
+}
+
 .card::before {
   content: "";
   width: 6px;
@@ -192,6 +256,19 @@ body {
   border: 1px solid var(--gray-border);
   margin-bottom: 24px;
   box-shadow: var(--shadow);
+}
+
+.form-card {
+  background: #f8fafc;
+  border: 1px solid var(--gray-border);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.form-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 15px;
 }
 
 .section h2 {

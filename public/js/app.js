@@ -1,45 +1,3 @@
-async function apiGet(url) {
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error(`Error HTTP ${response.status}`)
-  }
-
-  return response.json()
-}
-
-async function apiPost(url, body = {}) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  })
-
-  if (!response.ok) {
-    throw new Error(`Error HTTP ${response.status}`)
-  }
-
-  return response.json()
-}
-
-async function apiPut(url, body = {}) {
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  })
-
-  if (!response.ok) {
-    throw new Error(`Error HTTP ${response.status}`)
-  }
-
-  return response.json()
-}
-
 function formatNumber(value) {
   if (value === undefined || value === null || value === '') return '0'
   return Number(value).toLocaleString('es-GT')
@@ -107,3 +65,70 @@ function traducirTipoAlerta(tipo) {
 
   return tipos[tipo] || tipo || '-'
 }
+
+function requireAuth(expectedRole) {
+  const token = getToken()
+  const role = localStorage.getItem('rol')
+
+  if (!token) {
+    logout()
+    return false
+  }
+
+  if (expectedRole && role !== expectedRole) {
+    const roleRedirects = {
+      admin: '/admin/dashboard',
+      revisor: '/revisor/dashboard',
+      estudiante: '/estudiante/dashboard'
+    }
+
+    if (roleRedirects[role]) {
+      window.location.href = roleRedirects[role]
+      return false
+    }
+
+    logout()
+    return false
+  }
+
+  return true
+}
+
+function getUsuario() {
+  try {
+    return JSON.parse(localStorage.getItem('usuario') || '{}')
+  } catch (error) {
+    return {}
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const usuario = getUsuario()
+  const role = localStorage.getItem('rol')
+
+  const roleEl = document.getElementById('nav-role')
+  if (roleEl && role) {
+    roleEl.textContent = role
+  }
+
+  const userEl = document.getElementById('nav-user')
+  if (userEl) {
+    userEl.textContent = usuario.nombre || usuario.email || 'Usuario'
+  }
+
+  const logoutLink = document.getElementById('logout-link')
+  if (logoutLink) {
+    logoutLink.addEventListener('click', (event) => {
+      event.preventDefault()
+      logout()
+    })
+  }
+
+  const currentPath = window.location.pathname
+  document.querySelectorAll('.sidebar a').forEach((link) => {
+    const href = link.getAttribute('href')
+    if (href && currentPath.startsWith(href)) {
+      link.classList.add('active')
+    }
+  })
+})

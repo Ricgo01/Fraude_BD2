@@ -1,14 +1,26 @@
-<%- include('../partials/head', { title }) %>
+<%- include('../partials/header', { title: 'Login', bodyClass: 'auth-body' }) %>
 
-<main class="content">
-  <div class="section" style="max-width: 480px; margin: 80px auto;">
-    <h1>Iniciar sesión</h1>
-    <p>Selecciona un rol para navegar el prototipo.</p>
+<main class="auth-layout">
+  <section class="auth-card">
+    <div class="auth-header">
+      <h1>Ingreso al sistema</h1>
+      <p>Accede con tu correo registrado para entrar al portal.</p>
+    </div>
 
-    <a class="btn btn-primary" href="/estudiante/dashboard">Entrar como estudiante</a>
-    <a class="btn btn-secondary" href="/revisor/dashboard">Entrar como revisor</a>
-    <a class="btn btn-secondary" href="/admin/dashboard">Entrar como admin</a>
-  </div>
+    <div id="message"></div>
+
+    <form id="login-form" class="auth-form">
+      <label>Correo electronico</label>
+      <input class="form-control" type="email" id="email" placeholder="correo@ejemplo.com" required>
+
+      <button type="submit" class="btn btn-primary">Ingresar</button>
+    </form>
+
+    <p class="auth-footer">
+      No tienes cuenta?
+      <a href="/registro">Crear registro</a>
+    </p>
+  </section>
 </main>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { pageScript: '/js/pages/login.js' }) %>

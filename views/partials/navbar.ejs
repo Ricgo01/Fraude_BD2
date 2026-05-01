@@ -1,11 +1,16 @@
 <header class="navbar">
   <div>
-    <h2>Sistema de Becas y Detección de Fraude</h2>
+    <h2>Sistema de Becas y Deteccion de Fraude</h2>
     <p><%= title %></p>
   </div>
 
-  <div class="navbar-user">
-    <span>Rol: <strong><%= role %></strong></span>
-    <a href="/login">Salir</a>
-  </div>
+  <% if (role && role !== 'public') { %>
+    <div class="navbar-user">
+      <div class="navbar-user-info">
+        <span id="nav-user">Usuario</span>
+        <span class="badge badge-info" id="nav-role"><%= role %></span>
+      </div>
+      <a href="#" id="logout-link" class="btn btn-secondary">Salir</a>
+    </div>
+  <% } %>
 </header>

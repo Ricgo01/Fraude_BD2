@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  if (!requireAuth('admin')) return
   cargarDashboard()
 })
 
@@ -99,7 +100,7 @@ async function ejecutarDeteccion() {
     document.getElementById('message').innerHTML = `
       <div class="alert alert-success">
         Detección ejecutada correctamente. Alertas creadas:
-        ${result.resumen?.alertas_automáticas_creadas || 0}
+        ${result.resumen ? result.resumen['alertas_autom\u00e1ticas_creadas'] || 0 : 0}
       </div>
     `
 
