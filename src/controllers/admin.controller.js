@@ -232,9 +232,24 @@ exports.listarAlertas = async (req, res) => {
     try {
         const result = await session.run(
             `MATCH (a:Alerta)
-       RETURN a ORDER BY a.Fecha_Creacion DESC`
+       OPTIONAL MATCH (s:Solicitud)-[rel:GENERA_ALERTA]->(a)
+       OPTIONAL MATCH (e:Estudiante)-[:ENVIA]->(s)
+       RETURN {
+         ID: a.ID,
+         Tipo_Alerta: a.Tipo_Alerta,
+         Nivel_Riesgo: a.Nivel_Riesgo,
+         Puntaje_Riesgo: a.Puntaje_Riesgo,
+         Resuelta: a.Resuelta,
+         Fecha_Creacion: a.Fecha_Creacion,
+         Observacion: a.Observacion,
+         Estado_Alerta: rel.Estado_Alerta,
+         Solicitud_ID: s.ID,
+         Solicitud_Estado: s.Estado,
+         Estudiante_Nombre: e.Nombre_Completo
+       } AS alerta
+       ORDER BY a.Fecha_Creacion DESC`
         )
-        const alertas = result.records.map(r => r.get('a').properties)
+        const alertas = result.records.map(r => r.get('alerta'))
         res.status(200).json({ success: true, data: alertas })
     } catch (error) {
         res.status(500).json({ success: false, message: error.message })
@@ -246,9 +261,20 @@ exports.listarSolicitudes = async (req, res) => {
     try {
         const result = await session.run(
             `MATCH (s:Solicitud)
-       RETURN s ORDER BY s.Fecha_Envio DESC`
+       OPTIONAL MATCH (e:Estudiante)-[:ENVIA]->(s)
+       OPTIONAL MATCH (s)-[:APLICA_A]->(b:Beca)
+       RETURN {
+         ID: s.ID,
+         Estado: s.Estado,
+         Monto_Solicitado: s.Monto_Solicitado,
+         Fecha_Envio: s.Fecha_Envio,
+         Auditado: s.Auditado,
+         Estudiante_Nombre: e.Nombre_Completo,
+         Beca_Nombre: b.Nombre_Beca
+       } AS solicitud
+       ORDER BY s.Fecha_Envio DESC`
         )
-        const solicitudes = result.records.map(r => r.get('s').properties)
+        const solicitudes = result.records.map(r => r.get('solicitud'))
         res.status(200).json({ success: true, data: solicitudes })
     } catch (error) {
         res.status(500).json({ success: false, message: error.message })
@@ -297,6 +323,36 @@ exports.listarBecas = async (req, res) => {
     } finally { await session.close() }
 }
 
+// ─── SOLICITUDES CON NOTAS ────────────────────────────────────────────────────
+
+exports.listarSolicitudesConNotas = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (s:Solicitud)-[r:REVISADA_POR]->(rev:Revisor)
+       WHERE r.Nota IS NOT NULL AND r.Nota <> ''
+       MATCH (e:Estudiante)-[:ENVIA]->(s)
+       OPTIONAL MATCH (s)-[:APLICA_A]->(b:Beca)
+       RETURN {
+         solicitud_id: s.ID,
+         estado: s.Estado,
+         monto: s.Monto_Solicitado,
+         estudiante: e.Nombre_Completo,
+         beca: b.Nombre_Beca,
+         revisor_id: rev.ID,
+         revisor_nombre: rev.Nombre,
+         revisor_rol: rev.Rol,
+         nota: r.Nota
+       } AS resultado
+       ORDER BY s.Fecha_Envio DESC`
+        )
+        const data = result.records.map(r => r.get('resultado'))
+        res.status(200).json({ success: true, data })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
 // ─── ELIMINACIÓN DE NODOS ─────────────────────────────────────────────────────
 
 exports.eliminarAlerta = async (req, res) => {
@@ -304,7 +360,7 @@ exports.eliminarAlerta = async (req, res) => {
     try {
         const { alertaId } = req.params
         await session.run(
-            `MATCH (a:Alerta {ID: $alertaId, Resuelta: true}) DETACH DELETE a`,
+            `MATCH (a:Alerta {ID: $alertaId}) DETACH DELETE a`,
             { alertaId }
         )
         res.status(200).json({ success: true, message: 'Alerta eliminada exitosamente' })

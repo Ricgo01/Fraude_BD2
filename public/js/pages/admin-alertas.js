@@ -26,8 +26,8 @@ async function cargarAlertas() {
         <td>${traducirTipoAlerta(alerta.Tipo_Alerta)}</td>
         <td>${riskBadge(alerta.Nivel_Riesgo)}</td>
         <td>${alerta.Puntaje_Riesgo || 0}</td>
-        <td>${alerta.Solicitud_ID || '-'}</td>
-        <td>${alerta.Estado_Alerta || '-'}</td>
+        <td title="${alerta.Solicitud_ID || ''}">${alerta.Solicitud_ID ? shortId(alerta.Solicitud_ID) : '-'}</td>
+        <td>${alerta.Solicitud_Estado ? statusBadge(alerta.Solicitud_Estado) : '-'}</td>
         <td>${formatNeoDate(alerta.Fecha_Creacion)}</td>
         <td>
           <button class="btn btn-secondary" onclick="abrirModalAlerta('${alerta.ID}', '${alerta.Tipo_Alerta}', '${alerta.Solicitud_ID || ''}', '${alerta.Nivel_Riesgo}', '${alerta.Observacion || ''}')">Gestionar</button>
