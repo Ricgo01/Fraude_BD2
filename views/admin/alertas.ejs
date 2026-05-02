@@ -15,36 +15,106 @@
     <section class="section">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <h2>Alertas pendientes</h2>
-          <p>Estas alertas aún no han sido resueltas por administración.</p>
+          <h2>Gestor de Alertas</h2>
+          <p>Mesa de Resolución. Haz clic en "Gestionar" para ver los detalles.</p>
         </div>
 
-        <button class="btn btn-primary" onclick="cargarAlertas()">
-          Actualizar
-        </button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="abrirModalCrearAlerta()">
+            Crear Alerta Manual
+          </button>
+          <button class="btn btn-primary" onclick="cargarAlertas()">
+            Actualizar
+          </button>
+        </div>
       </div>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID Alerta</th>
-            <th>Tipo</th>
-            <th>Nivel</th>
-            <th>Puntaje</th>
-            <th>Solicitud</th>
-            <th>Estado solicitud</th>
-            <th>Fecha</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-
-        <tbody id="alerts-table">
-          <tr>
-            <td colspan="8">Cargando alertas...</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrapper" style="margin-top: 20px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID Alerta</th>
+              <th>Tipo</th>
+              <th>Nivel</th>
+              <th>Puntaje</th>
+              <th>Solicitud Vinculada</th>
+              <th>Estado solicitud</th>
+              <th>Fecha</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-table">
+            <tr>
+              <td colspan="8">Cargando alertas activas...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
+
+    <!-- Modal Gestión de Alerta -->
+    <div id="modal-alerta" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+      <div class="modal-content" style="background: white; padding: 30px; border-radius: 8px; max-width: 600px; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="margin: 0;">Gestionar Alerta <span id="modal-alerta-id"></span></h2>
+          <button style="background: none; border: none; font-size: 1.5em; cursor: pointer;" onclick="cerrarModalAlerta()">&times;</button>
+        </div>
+        
+        <p><strong>Tipo:</strong> <span id="modal-alerta-tipo"></span></p>
+        <p><strong>Solicitud Vinculada:</strong> <span id="modal-alerta-solicitud"></span></p>
+        
+        <div style="margin: 20px 0;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Nivel de Riesgo</label>
+          <select id="modal-alerta-riesgo" class="form-control" style="margin-bottom: 10px;">
+            <option value="Bajo">Bajo</option>
+            <option value="Medio">Medio</option>
+            <option value="Alto">Alto</option>
+            <option value="Crítico">Crítico</option>
+          </select>
+          <button class="btn btn-secondary" onclick="actualizarRiesgoAlerta()">Cambiar Riesgo</button>
+        </div>
+
+        <div style="margin: 20px 0;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Observaciones de Investigación</label>
+          <textarea id="modal-alerta-observacion" class="form-control" rows="3" placeholder="Escribe detalles del análisis..." style="width: 100%; margin-bottom: 10px;"></textarea>
+          <button class="btn btn-secondary" onclick="agregarObservacion()">Agregar Observación</button>
+        </div>
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e5e7eb;">
+
+        <div style="display: flex; justify-content: space-between;">
+          <button class="btn btn-danger" onclick="eliminarAlerta()">Eliminar (Falsa Alarma)</button>
+          <button class="btn btn-primary" style="background-color: #10b981;" onclick="resolverAlerta()">Resolver Alerta</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Crear Alerta Manual -->
+    <div id="modal-crear-alerta" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+      <div class="modal-content" style="background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="margin: 0;">Crear Alerta Manual</h2>
+          <button style="background: none; border: none; font-size: 1.5em; cursor: pointer;" onclick="cerrarModalCrearAlerta()">&times;</button>
+        </div>
+        
+        <label>ID de Solicitud:</label>
+        <input type="text" id="nueva-alerta-solicitud" class="form-control" style="margin-bottom: 15px;">
+
+        <label>Tipo de Alerta:</label>
+        <input type="text" id="nueva-alerta-tipo" class="form-control" placeholder="Ej: Sospecha de fraude documental" style="margin-bottom: 15px;">
+
+        <label>Nivel de Riesgo:</label>
+        <select id="nueva-alerta-riesgo" class="form-control" style="margin-bottom: 15px;">
+          <option value="Alto">Alto</option>
+          <option value="Crítico">Crítico</option>
+        </select>
+
+        <label>Observaciones:</label>
+        <textarea id="nueva-alerta-obs" class="form-control" rows="3" style="width: 100%; margin-bottom: 20px;"></textarea>
+
+        <button class="btn btn-primary" style="width: 100%;" onclick="guardarAlertaManual()">Guardar Alerta</button>
+      </div>
+    </div>
   </main>
 </div>
 

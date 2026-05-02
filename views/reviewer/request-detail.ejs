@@ -4,101 +4,64 @@
 <div class="layout">
     <%- include('../partials/sidebar', { role }) %>
     <main class="content">
+        <!-- Panel Superior (Banderas Rojas) -->
+        <div id="banner-alertas" class="alert-banner" style="display: none; background-color: #f87171; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; font-size: 1.1em;">
+            <!-- Contenido dinámico desde JS -->
+        </div>
+
         <div class="page-header">
-            <h1>Detalle de Solicitud</h1>
-            <p>Revision, documentos y resolucion de la solicitud.</p>
+            <h1>Sala de Analisis</h1>
+            <p>Evaluacion de solicitud <span id="solicitud-id-header"></span></p>
         </div>
 
         <div id="message"></div>
 
-        <section class="section">
-            <h2>Resumen</h2>
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Solicitud</h3>
-                    <strong id="solicitud-id">-</strong>
-                    <small id="solicitud-estado">-</small>
-                </div>
-                <div class="card">
-                    <h3>Monto solicitado</h3>
-                    <strong id="solicitud-monto">Q0</strong>
-                    <small id="solicitud-fecha">-</small>
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="section" id="detalle-estudiante">
+        <div class="grid-3">
+            <!-- Panel Izquierdo (Datos) -->
+            <div class="card" style="grid-column: span 1;">
+                <h2>Panel de Datos</h2>
+                <div id="detalle-estudiante" style="margin-bottom: 15px;">
                     <h3>Estudiante</h3>
                     <p>Cargando...</p>
                 </div>
-                <div class="section" id="detalle-beca">
-                    <h3>Beca</h3>
+                <div id="detalle-beca" style="margin-bottom: 15px;">
+                    <h3>Beca Solicitada</h3>
+                    <p>Cargando...</p>
+                </div>
+                <div id="detalle-solicitud">
+                    <h3>Detalles de la Solicitud</h3>
                     <p>Cargando...</p>
                 </div>
             </div>
-        </section>
 
-        <section class="section">
-            <div class="actions" style="justify-content: space-between;">
-                <div>
-                    <h2>Documentos</h2>
-                    <p>Revisar y aprobar documentos adjuntos.</p>
+            <!-- Panel Central (Auditoria de Documentos) -->
+            <div class="card" style="grid-column: span 1;">
+                <h2>Auditoria de Documentos</h2>
+                <p><small>Marca los checkboxes para definir si son Validos o Invalidos y guarda la revision.</small></p>
+                <div id="documentos-container" style="margin-top: 15px; margin-bottom: 20px;">
+                    <p>Cargando...</p>
                 </div>
-                <button class="btn btn-secondary" onclick="cargarDetalle()">Actualizar</button>
+                <button class="btn btn-secondary" style="width: 100%; margin-bottom: 10px;" onclick="marcarDocumentos()">Guardar Revision de Documentos</button>
             </div>
-            <div class="table-wrapper">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipo</th>
-                            <th>Valido</th>
-                            <th>Estado revision</th>
-                            <th>Accion</th>
-                        </tr>
-                    </thead>
-                    <tbody id="documentos-table">
-                        <tr><td colspan="5">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
 
-        <section class="section">
-            <h2>Alertas</h2>
-            <div class="table-wrapper">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipo</th>
-                            <th>Nivel</th>
-                            <th>Resuelta</th>
-                        </tr>
-                    </thead>
-                    <tbody id="alertas-table">
-                        <tr><td colspan="4">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Resolver solicitud</h2>
-            <div class="grid-2">
-                <div>
-                    <label>Decision</label>
-                    <select class="form-control" id="decision">
-                        <option value="Aprobada">Aprobar</option>
-                        <option value="Rechazada">Rechazar</option>
-                    </select>
+            <!-- Panel Derecho (Veredicto Final) -->
+            <div class="card" style="grid-column: span 1;">
+                <h2>Veredicto Final</h2>
+                <div style="margin-bottom: 15px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Nota / Justificacion</label>
+                    <textarea class="form-control" id="nota-veredicto" rows="4" placeholder="Escribe tu analisis y justificacion de la decision..." style="width: 100%; resize: vertical;"></textarea>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="guardarNotaRevision()">Agregar Nota</button>
                 </div>
-                <div>
-                    <label>Nota</label>
-                    <input class="form-control" id="nota" placeholder="Observaciones">
+                
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e5e7eb;">
+
+                <p style="text-align: center; margin-bottom: 15px; font-weight: bold;">Toma de Decision</p>
+                <div style="display: flex; gap: 10px; flex-direction: column;">
+                    <button class="btn btn-primary" style="background-color: #10b981; font-size: 1.2em; padding: 15px;" onclick="resolverSolicitud('Aprobada')">✓ APROBAR</button>
+                    <button class="btn btn-primary" style="background-color: #ef4444; font-size: 1.2em; padding: 15px;" onclick="resolverSolicitud('Rechazada')">✗ RECHAZAR</button>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="resolverSolicitud()">Guardar decision</button>
-        </section>
+        </div>
     </main>
 </div>
 

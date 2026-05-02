@@ -3,37 +3,34 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarAlertas()
 })
 
+let alertaSeleccionada = null
+
 async function cargarAlertas() {
   const tbody = document.getElementById('alerts-table')
   const message = document.getElementById('message')
 
   try {
     message.innerHTML = ''
-
-    const response = await apiGet('/api/reports/alerts/pending')
+    const response = await apiGet('/admin/alertas/activas') // endpoint correcto según admin.routes.js
     const alertas = response.data || []
 
     if (alertas.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="8">No hay alertas pendientes.</td>
-        </tr>
-      `
+      tbody.innerHTML = `<tr><td colspan="8">No hay alertas activas.</td></tr>`
       return
     }
 
     tbody.innerHTML = alertas.map(alerta => `
       <tr>
-        <td>${alerta.alerta_id || '-'}</td>
-        <td>${traducirTipoAlerta(alerta.tipo_alerta)}</td>
+        <td>${alerta.id || '-'}</td>
+        <td>${traducirTipoAlerta(alerta.tipo)}</td>
         <td>${riskBadge(alerta.nivel_riesgo)}</td>
         <td>${alerta.puntaje_riesgo || 0}</td>
         <td>${alerta.solicitud_id || '-'}</td>
         <td>${alerta.solicitud_estado || '-'}</td>
         <td>${alerta.fecha_creacion || '-'}</td>
         <td>
-          <button class="btn btn-secondary" onclick="resolverAlerta('${alerta.alerta_id}')">
-            Resolver
+          <button class="btn btn-secondary" onclick="abrirModalAlerta('${alerta.id}', '${alerta.tipo}', '${alerta.solicitud_id}', '${alerta.nivel_riesgo}', '${alerta.observacion || ''}')">
+            Gestionar
           </button>
         </td>
       </tr>
@@ -41,49 +38,103 @@ async function cargarAlertas() {
 
   } catch (error) {
     console.error(error)
-
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8">No se pudieron cargar las alertas.</td>
-      </tr>
-    `
-
-    message.innerHTML = `
-      <div class="alert alert-error">
-        Error cargando alertas. Revisa conexión con Neo4j o el endpoint de alertas.
-      </div>
-    `
+    tbody.innerHTML = `<tr><td colspan="8">No se pudieron cargar las alertas. Intenta actualizar.</td></tr>`
   }
 }
 
-async function resolverAlerta(alertId) {
-  const descripcion = prompt('Escribe la justificación o resolución de esta alerta:')
+// === MODAL GESTIONAR ALERTA ===
+function abrirModalAlerta(id, tipo, solicitud, riesgo, observacion) {
+  alertaSeleccionada = id
+  document.getElementById('modal-alerta-id').textContent = id
+  document.getElementById('modal-alerta-tipo').textContent = traducirTipoAlerta(tipo)
+  document.getElementById('modal-alerta-solicitud').textContent = solicitud
+  document.getElementById('modal-alerta-riesgo').value = riesgo || 'Alto'
+  document.getElementById('modal-alerta-observacion').value = observacion === 'undefined' || !observacion ? '' : observacion
+  document.getElementById('modal-alerta').style.display = 'flex'
+}
 
-  if (!descripcion) {
+function cerrarModalAlerta() {
+  document.getElementById('modal-alerta').style.display = 'none'
+  alertaSeleccionada = null
+}
+
+async function actualizarRiesgoAlerta() {
+  const riesgo = document.getElementById('modal-alerta-riesgo').value
+  try {
+    await apiPatch(`/admin/alerta/${alertaSeleccionada}/riesgo`, { Nivel_Riesgo: riesgo })
+    mostrarToast('Nivel de riesgo actualizado', 'success')
+    cargarAlertas()
+  } catch (error) {
+    mostrarToast(error.message, 'error')
+  }
+}
+
+async function agregarObservacion() {
+  const obs = document.getElementById('modal-alerta-observacion').value.trim()
+  try {
+    await apiPatch(`/admin/alerta/${alertaSeleccionada}/observacion`, { Observacion: obs })
+    mostrarToast('Observación guardada', 'success')
+  } catch (error) {
+    mostrarToast(error.message, 'error')
+  }
+}
+
+async function eliminarAlerta() {
+  if (!confirm('¿Seguro que deseas eliminar esta alerta como Falsa Alarma?')) return
+  try {
+    await apiDelete(`/admin/alerta/${alertaSeleccionada}`)
+    mostrarToast('Alerta eliminada', 'success')
+    cerrarModalAlerta()
+    cargarAlertas()
+  } catch (error) {
+    mostrarToast(error.message, 'error')
+  }
+}
+
+async function resolverAlerta() {
+  try {
+    // Usando el endpoint de resolver del backend actual
+    await apiPut(`/api/reports/alerts/${alertaSeleccionada}/resolve`, { descripcion_resolucion: 'Resuelta desde Modal' })
+    mostrarToast('Alerta Resuelta', 'success')
+    cerrarModalAlerta()
+    cargarAlertas()
+  } catch (error) {
+    mostrarToast(error.message, 'error')
+  }
+}
+
+// === MODAL CREAR ALERTA MANUAL ===
+function abrirModalCrearAlerta() {
+  document.getElementById('modal-crear-alerta').style.display = 'flex'
+}
+
+function cerrarModalCrearAlerta() {
+  document.getElementById('modal-crear-alerta').style.display = 'none'
+}
+
+async function guardarAlertaManual() {
+  const solicitudId = document.getElementById('nueva-alerta-solicitud').value.trim()
+  const tipo = document.getElementById('nueva-alerta-tipo').value.trim()
+  const riesgo = document.getElementById('nueva-alerta-riesgo').value
+  const observacion = document.getElementById('nueva-alerta-obs').value.trim()
+
+  if (!solicitudId || !tipo) {
+    mostrarToast('Solicitud ID y Tipo son obligatorios', 'error')
     return
   }
 
   try {
-    await apiPut(`/api/reports/alerts/${alertId}/resolve`, {
-      descripcion_resolucion: descripcion
+    await apiPost('/admin/alerta', {
+      Solicitud_ID: solicitudId,
+      Tipo_Alerta: tipo,
+      Nivel_Riesgo: riesgo,
+      Observaciones: observacion
     })
-
-    document.getElementById('message').innerHTML = `
-      <div class="alert alert-success">
-        Alerta marcada como resuelta correctamente.
-      </div>
-    `
-
-    await cargarAlertas()
-
+    mostrarToast('Alerta creada correctamente', 'success')
+    cerrarModalCrearAlerta()
+    cargarAlertas()
   } catch (error) {
-    console.error(error)
-
-    document.getElementById('message').innerHTML = `
-      <div class="alert alert-error">
-        No se pudo resolver la alerta.
-      </div>
-    `
+    mostrarToast(error.message, 'error')
   }
 }
 
@@ -93,6 +144,5 @@ function traducirTipoAlerta(tipo) {
     REUSED_DOCUMENT: 'Documento reutilizado',
     FRAUD_NETWORK: 'Red de fraude'
   }
-
   return tipos[tipo] || tipo || '-'
 }

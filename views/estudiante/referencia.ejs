@@ -44,6 +44,38 @@
 
       <button class="btn btn-primary" onclick="guardarReferencia()">Guardar referencia</button>
     </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Referencias registradas</h2>
+          <p>Selecciona una referencia para editarla.</p>
+        </div>
+        <div class="actions">
+          <select class="form-control" id="referencia-select" style="max-width: 280px;">
+            <option value="">Selecciona una referencia</option>
+          </select>
+          <button class="btn btn-secondary" onclick="seleccionarReferencia()">Cargar</button>
+          <button class="btn btn-primary" onclick="actualizarReferencia()">Actualizar referencia</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Telefono</th>
+              <th>Relacion</th>
+              <th>Verificada</th>
+            </tr>
+          </thead>
+          <tbody id="referencias-table">
+            <tr><td colspan="4">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 

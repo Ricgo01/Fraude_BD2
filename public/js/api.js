@@ -1,5 +1,11 @@
+const BASE_URL = 'http://localhost:3000'
+
 function getToken() {
   return localStorage.getItem('token')
+}
+
+function getRol() {
+  return localStorage.getItem('rol')
 }
 
 function authHeaders(extra = {}, includeJson = true) {
@@ -25,8 +31,8 @@ function logout() {
 }
 
 async function handleResponse(response) {
-  if (response.status === 401) {
-    logout()
+  if (response.status === 401 || response.status === 403) {
+    handleAuthError(response)
     throw new Error('Sesion expirada o no autorizada')
   }
 
@@ -95,4 +101,44 @@ async function apiDelete(url, body = null, headers = {}) {
 
   const response = await fetch(url, options)
   return handleResponse(response)
+}
+
+function handleAuthError(response) {
+  logout()
+}
+
+function mostrarToast(message, type = 'error') {
+  const toastContainer = document.getElementById('toast-container') || document.body;
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerText = message;
+  
+  // Estilo básico en caso de no estar en CSS
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.padding = '15px 25px';
+  toast.style.borderRadius = '8px';
+  toast.style.color = 'white';
+  toast.style.fontWeight = 'bold';
+  toast.style.zIndex = '9999';
+  toast.style.opacity = '0';
+  toast.style.transition = 'opacity 0.3s ease-in-out';
+  
+  if (type === 'success') toast.style.backgroundColor = '#10B981'; // Green
+  else if (type === 'error') toast.style.backgroundColor = '#EF4444'; // Red
+  else if (type === 'warning') toast.style.backgroundColor = '#F59E0B'; // Yellow
+  else toast.style.backgroundColor = '#3B82F6'; // Blue
+
+  toastContainer.appendChild(toast);
+  
+  // Fade in
+  setTimeout(() => toast.style.opacity = '1', 10);
+  
+  // Fade out
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }

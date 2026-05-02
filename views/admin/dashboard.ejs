@@ -7,69 +7,95 @@
   <main class="content">
     <section class="hero-admin">
       <h1>Dashboard Administrativo</h1>
-      <p>Vista general del sistema de becas, alertas y detección de fraude.</p>
+      <p>Panel de Control Aereo - Metricas globales y riesgo rapido.</p>
     </section>
 
     <div id="message"></div>
 
-    <section class="cards">
+    <!-- Metricas Globales -->
+    <section class="cards" style="margin-bottom: 30px;">
       <div class="card">
-        <h3>Total alertas</h3>
-        <strong id="total-alertas">0</strong>
+        <h3>Total Alertas</h3>
+        <strong id="total-alertas" style="color: #ef4444;">0</strong>
         <small>Alertas registradas</small>
       </div>
 
       <div class="card">
         <h3>Pendientes</h3>
-        <strong id="alertas-pendientes">0</strong>
+        <strong id="alertas-pendientes" style="color: #f59e0b;">0</strong>
         <small>Alertas sin resolver</small>
       </div>
 
       <div class="card">
-        <h3>Cuentas compartidas</h3>
+        <h3>Cuentas Compartidas</h3>
         <strong id="cuentas-compartidas">0</strong>
         <small>Posibles casos de riesgo</small>
       </div>
 
       <div class="card">
-        <h3>Riesgo promedio</h3>
+        <h3>Riesgo Promedio</h3>
         <strong id="riesgo-promedio">0</strong>
         <small>Puntaje consolidado</small>
       </div>
     </section>
 
-    <section class="section">
-      <div class="actions" style="justify-content: space-between;">
-        <div>
-          <h2>Alertas pendientes recientes</h2>
-          <p>Alertas automáticas que requieren revisión administrativa.</p>
+    <!-- Filtros de Riesgo Rapido -->
+    <div class="grid-2">
+      <!-- Tabla 1: Estudiantes con Promedios Bajos -->
+      <section class="section" style="grid-column: span 1;">
+        <div class="actions" style="justify-content: space-between; align-items: flex-end;">
+          <div>
+            <h2>Promedios Sospechosos</h2>
+            <p><small>Estudiantes con promedios bajos.</small></p>
+          </div>
+          <div style="display: flex; gap: 5px;">
+            <select id="beca-id-select" class="form-control" style="width: 150px;">
+              <option value="">Cargando becas...</option>
+            </select>
+            <button class="btn btn-secondary" onclick="cargarPromediosBajos()">Ver</button>
+          </div>
         </div>
+        <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Estudiante</th>
+                <th>Promedio</th>
+              </tr>
+            </thead>
+            <tbody id="promedios-table">
+              <tr><td colspan="3">Ingresa un ID de beca y presiona Ver.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-        <button class="btn btn-primary" onclick="ejecutarDeteccion()">
-          Ejecutar detección automática
-        </button>
-      </div>
-
-      <div class="table-wrapper">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID alerta</th>
-              <th>Tipo</th>
-              <th>Nivel</th>
-              <th>Puntaje</th>
-              <th>Solicitud</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody id="alerts-table">
-            <tr>
-              <td colspan="6">Cargando datos...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      <!-- Tabla 2: Pagos Fallidos en Bucle -->
+      <section class="section" style="grid-column: span 1;">
+        <div class="actions" style="justify-content: space-between;">
+          <div>
+            <h2>Pagos Fallidos</h2>
+            <p><small>Posibles intentos de fraude en pagos.</small></p>
+          </div>
+          <button class="btn btn-secondary" onclick="cargarPagosFallidos()">Actualizar</button>
+        </div>
+        <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Estudiante ID</th>
+                <th>Nombre</th>
+                <th>Fallos</th>
+              </tr>
+            </thead>
+            <tbody id="pagos-table">
+              <tr><td colspan="3">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
   </main>
 </div>
 

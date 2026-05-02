@@ -36,10 +36,14 @@ class AlertService {
    * @param {Object} metadatos - Información adicional del fraude
    * @returns {Promise<Object>} Objeto con información de la alerta creada
    */
-  async createAutomaticAlert(tipoAlerta, solicitudIDs, puntajeRiesgo, metadatos = {}) {
+  async createAutomaticAlert(tipoAlerta, solicitudIDs, puntajeRiesgo, metadatos = {}, dedupKey = '') {
     const session = driver.session();
     try {
       console.log(`[AlertService] Creando alerta tipo '${tipoAlerta}' para ${solicitudIDs.length} solicitud(es)...`);
+
+      if (!dedupKey) {
+        throw new Error('dedupKey es requerido para evitar alertas duplicadas');
+      }
 
       const alertID = this.generarID();
       const nivelRiesgo = this.calcularNivelRiesgo(puntajeRiesgo);
@@ -47,24 +51,27 @@ class AlertService {
 
       // Query que crea la alerta Y la conecta a las solicitudes en una transacción
       const crearAlertaQuery = `
-        CREATE (a:Alerta:Automáticas {
-          ID: $alertID,
+        MERGE (a:Alerta:Automáticas {
           Tipo_Alerta: $tipoAlerta,
-          Nivel_Riesgo: $nivelRiesgo,
-          Puntaje_Riesgo: $puntajeRiesgo,
-          Resuelta: false,
-          Fecha_Creacion: $fechaCreacion,
-          Metadatos: $metadatos
+          Regla_Disparada: $tipoAlerta,
+          Dedup_Key: $dedupKey,
+          Resuelta: false
         })
-        WITH a
+        ON CREATE SET
+          a.ID = $alertID,
+          a.Nivel_Riesgo = $nivelRiesgo,
+          a.Puntaje_Riesgo = $puntajeRiesgo,
+          a.Fecha_Creacion = $fechaCreacion,
+          a.Metadatos = $metadatos
+        WITH a, (a.Fecha_Creacion = $fechaCreacion) AS creada
         UNWIND $solicitudIDs AS solicitud_id
         MATCH (s:Solicitud {ID: solicitud_id})
-        CREATE (a)-[:GENERA_ALERTA {
-          Fecha_Deteccion: $fechaCreacion,
-          Regla_Disparada: $tipoAlerta,
-          Estado_Alerta: 'GENERADA'
-        }]->(s)
-        RETURN a.ID AS alerta_id, COUNT(s) AS solicitudes_conectadas
+        MERGE (a)-[r:GENERA_ALERTA]->(s)
+        ON CREATE SET
+          r.Fecha_Deteccion = $fechaCreacion,
+          r.Regla_Disparada = $tipoAlerta,
+          r.Estado_Alerta = 'GENERADA'
+        RETURN a.ID AS alerta_id, COUNT(s) AS solicitudes_conectadas, creada
       `;
 
       const result = await session.run(crearAlertaQuery, {
@@ -75,6 +82,7 @@ class AlertService {
         fechaCreacion,
         metadatos: JSON.stringify(metadatos),
         solicitudIDs,
+        dedupKey,
       });
 
       if (result.records.length === 0) {
@@ -84,6 +92,7 @@ class AlertService {
       const record = result.records[0];
       const alertaID = record.get('alerta_id');
       const solicitudesConectadas = record.get('solicitudes_conectadas');
+      const creada = record.get('creada');
 
       console.log(
         `[AlertService] ✓ Alerta creada (${alertaID}) con nivel ${nivelRiesgo}. ` +
@@ -98,6 +107,7 @@ class AlertService {
         solicitudes_conectadas: solicitudesConectadas,
         fecha_creacion: fechaCreacion,
         metadatos,
+        creada: Boolean(creada),
       };
     } catch (error) {
       console.error(`[AlertService] Error creando alerta: ${error.message}`);

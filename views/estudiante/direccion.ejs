@@ -49,6 +49,38 @@
 
       <button class="btn btn-primary" onclick="guardarDireccion()">Guardar direccion</button>
     </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Direcciones registradas</h2>
+          <p>Selecciona una direccion para editarla.</p>
+        </div>
+        <div class="actions">
+          <select class="form-control" id="direccion-select" style="max-width: 280px;">
+            <option value="">Selecciona una direccion</option>
+          </select>
+          <button class="btn btn-secondary" onclick="seleccionarDireccion()">Cargar</button>
+          <button class="btn btn-primary" onclick="actualizarDireccion()">Actualizar direccion</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Direccion</th>
+              <th>Municipio</th>
+              <th>Departamento</th>
+              <th>Verificada</th>
+            </tr>
+          </thead>
+          <tbody id="direcciones-table">
+            <tr><td colspan="4">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 

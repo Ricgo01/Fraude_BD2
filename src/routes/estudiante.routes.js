@@ -22,5 +22,19 @@ router.post('/referencia', controller.mergeReferencia)
 router.get('/perfil', controller.verPerfil)
 router.get('/solicitudes', controller.verSolicitudes)
 router.get('/documentos', controller.verDocumentos)
+router.get('/cuentas', controller.listarCuentas)
+router.get('/direcciones', controller.listarDirecciones)
+router.get('/instituciones', controller.listarInstituciones)
+router.get('/dispositivos', controller.listarDispositivos)
+router.get('/referencias', controller.listarReferencias)
+router.get('/becas', controller.listarBecas)
+
+// ─── Actualizar nodos ─────────────────────────────────────────
+router.patch('/cuenta/:cuentaId', controller.actualizarCuenta)
+router.patch('/direccion/:direccionId', controller.actualizarDireccion)
+router.patch('/institucion/:institucionId', controller.actualizarInstitucion)
+router.patch('/dispositivo/:dispositivoId', controller.actualizarDispositivo)
+router.patch('/referencia/:referenciaId', controller.actualizarReferencia)
+router.patch('/documento/:documentoId', controller.actualizarDocumento)
 
 module.exports = router

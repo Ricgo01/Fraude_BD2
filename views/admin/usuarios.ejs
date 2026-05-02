@@ -4,9 +4,40 @@
 <div class="layout">
   <%- include('../partials/sidebar', { role }) %>
   <main class="content">
-    <h1>Gestión de Usuarios</h1>
-    <p>Aquí se administrarán estudiantes, revisores y administradores.</p>
+    <div class="page-header">
+      <h1>Gestión de Estudiantes y Guillotina</h1>
+      <p>Listado de estudiantes. Puedes seleccionar a los marcados por fraude y desactivar sus cuentas.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <button class="btn btn-secondary" onclick="cargarEstudiantes()">Actualizar Lista</button>
+        <button class="btn btn-primary" style="background-color: #ef4444;" onclick="ejecutarGuillotina()">
+          <span style="font-size: 1.2em;">⚔️</span> Desactivar Seleccionados (Guillotina)
+        </button>
+      </div>
+
+      <div class="table-wrapper" style="margin-top: 20px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+              <th>ID</th>
+              <th>Nombre Completo</th>
+              <th>Email</th>
+              <th>Promedio</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="estudiantes-table">
+            <tr><td colspan="6">Cargando estudiantes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-usuarios.js' }) %>

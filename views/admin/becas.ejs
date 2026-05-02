@@ -66,19 +66,60 @@
               <th>Promedio</th>
               <th>Minimo</th>
               <th>Maximo</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="becas-table">
-            <tr><td colspan="7">Cargando...</td></tr>
+            <tr><td colspan="8">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
+    <!-- Modal Editar Beca -->
+    <div id="modal-editar-beca" class="modal" style="display: none;">
+      <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+          <h2>Editar Beca</h2>
+          <button class="close-btn" onclick="cerrarModalEditarBeca()">×</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-beca-form" class="grid-2">
+            <input type="hidden" id="editBecaId">
+            <div style="grid-column: span 2;">
+              <label>Nombre de la beca</label>
+              <input class="form-control" id="editNombreBeca" required>
+            </div>
+            <div>
+              <label>Categoria</label>
+              <input class="form-control" id="editCategoria" required>
+            </div>
+            <div>
+              <label>Monto maximo</label>
+              <input class="form-control" id="editMontoMax" type="number" required>
+            </div>
+            <div>
+              <label>Renovable</label>
+              <select class="form-control" id="editRenovable">
+                <option value="true">Si</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-secondary" onclick="cerrarModalEditarBeca()">Cancelar</button>
+          <button class="btn btn-primary" onclick="guardarBeca()">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+
     <section class="section">
       <h2>Filtrar estudiantes por promedio</h2>
       <div class="actions">
-        <input class="form-control" id="becaFiltroId" placeholder="ID de beca" style="max-width: 260px;">
+        <select class="form-control" id="becaFiltroId" style="max-width: 260px;">
+          <option value="">Selecciona una beca</option>
+        </select>
         <button class="btn btn-secondary" onclick="filtrarEstudiantes()">Buscar</button>
       </div>
 
@@ -93,7 +134,7 @@
             </tr>
           </thead>
           <tbody id="estudiantes-table">
-            <tr><td colspan="4">Ingresa un ID de beca.</td></tr>
+            <tr><td colspan="4">Selecciona una beca.</td></tr>
           </tbody>
         </table>
       </div>

@@ -5,21 +5,30 @@
   <%- include('../partials/sidebar', { role }) %>
   <main class="content">
     <div class="page-header">
-      <h1>Carga CSV</h1>
-      <p>Importa estudiantes desde un archivo CSV con columnas Nombre_Completo, Email, Fecha_Nacimiento, Promedio.</p>
+      <h1>Carga de Estudiantes (CSV)</h1>
+      <p>Importa masivamente estudiantes al sistema mediante arrastrar y soltar.</p>
     </div>
 
     <div id="message"></div>
 
     <section class="section">
-      <h2>Subir archivo</h2>
-      <form id="csv-form" class="actions">
-        <input class="form-control" type="file" id="csvFile" accept=".csv" required>
-        <button class="btn btn-primary" type="submit">Cargar CSV</button>
-      </form>
+      <h2>Subir Archivo</h2>
+      
+      <!-- Zona Drag & Drop -->
+      <div id="drop-zone" style="border: 2px dashed #9ca3af; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; background-color: #f9fafb; margin-bottom: 20px;">
+        <p style="font-size: 1.2em; color: #4b5563; margin-bottom: 10px;">Arrastra y suelta tu archivo CSV aquí</p>
+        <p style="color: #6b7280; font-size: 0.9em;">o haz clic para seleccionar un archivo</p>
+        <input type="file" id="csvFile" accept=".csv" style="display: none;">
+      </div>
 
-      <div class="alert alert-info">
-        El archivo debe estar en formato CSV y usar separador por comas.
+      <div id="file-info" style="display: none; margin-bottom: 20px; padding: 10px; background: #e5e7eb; border-radius: 5px;">
+        <p style="margin: 0;"><strong>Archivo seleccionado:</strong> <span id="file-name"></span></p>
+      </div>
+
+      <button id="btn-upload" class="btn btn-primary" style="width: 100%; display: none;" onclick="subirArchivo()">Cargar Estudiantes CSV</button>
+
+      <div class="alert alert-info" style="margin-top: 20px;">
+        El archivo debe estar en formato CSV y usar separador por comas. Columnas requeridas: Nombre_Completo, Email, Fecha_Nacimiento, Promedio.
       </div>
     </section>
   </main>

@@ -1,75 +1,76 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth('revisor')) return
-    cargarDashboardRevisor()
+    cargarDisponibles()
+    cargarPendientes()
 })
 
-async function cargarDashboardRevisor() {
-    const message = document.getElementById('message')
-    const pendientesTable = document.getElementById('pendientes-table')
+async function cargarDisponibles() {
+    const tbody = document.getElementById('disponibles-table')
+    try {
+        const response = await apiGet('/revisor/solicitudes/disponibles')
+        const items = response.data || []
+        
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="6">No hay solicitudes disponibles.</td></tr>'
+            return
+        }
 
-    const results = await Promise.allSettled([
-        apiGet('/revisor/solicitudes/pendientes/count'),
-        apiGet('/revisor/solicitudes/riesgo?Nivel_Riesgo=alto'),
-        apiGet('/revisor/solicitudes/riesgo?Nivel_Riesgo=medio'),
-        apiGet('/revisor/solicitudes/riesgo?Nivel_Riesgo=bajo'),
-        apiGet('/revisor/solicitudes/pendientes')
-    ])
-
-    const pendingCountResult = results[0]
-    const altoResult = results[1]
-    const medioResult = results[2]
-    const bajoResult = results[3]
-    const pendientesResult = results[4]
-
-    if (pendingCountResult.status === 'fulfilled') {
-        document.getElementById('pendientes-count').textContent =
-            formatNumber(pendingCountResult.value.data?.total_pendientes || 0)
-    } else {
-        document.getElementById('pendientes-count').textContent = '0'
-    }
-
-    document.getElementById('riesgo-alto-count').textContent =
-        altoResult.status === 'fulfilled'
-            ? formatNumber((altoResult.value.data || []).length)
-            : '0'
-    document.getElementById('riesgo-medio-count').textContent =
-        medioResult.status === 'fulfilled'
-            ? formatNumber((medioResult.value.data || []).length)
-            : '0'
-    document.getElementById('riesgo-bajo-count').textContent =
-        bajoResult.status === 'fulfilled'
-            ? formatNumber((bajoResult.value.data || []).length)
-            : '0'
-
-    if (pendientesResult.status === 'fulfilled') {
-        const pendientes = pendientesResult.value.data || []
-        renderPendientes(pendientes)
-    } else {
-        pendientesTable.innerHTML = '<tr><td colspan="6">No se pudieron cargar las solicitudes.</td></tr>'
-        message.innerHTML = `
-            <div class="alert alert-error">
-                Error cargando dashboard del revisor.
-            </div>
-        `
+        tbody.innerHTML = items.map((item) => `
+            <tr>
+                <td>${item.solicitud_id || '-'}</td>
+                <td>${item.estudiante_nombre || '-'}</td>
+                <td>${item.beca_nombre || '-'}</td>
+                <td>${formatMoney(item.monto_solicitado)}</td>
+                <td>${item.fecha_envio || '-'}</td>
+                <td><button class="btn btn-primary" onclick="tomarCaso('${item.solicitud_id}')">Tomar Caso</button></td>
+            </tr>
+        `).join('')
+    } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="6">Error cargando solicitudes.</td></tr>'
     }
 }
 
-function renderPendientes(items) {
+async function cargarPendientes() {
     const tbody = document.getElementById('pendientes-table')
+    const riesgo = document.getElementById('riesgo-filter').value
+    
+    try {
+        let url = '/revisor/solicitudes/pendientes'
+        if (riesgo) {
+            url = `/revisor/solicitudes/riesgo?Nivel_Riesgo=${riesgo}`
+        }
+        
+        const response = await apiGet(url)
+        const items = response.data || []
+        
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="7">No tienes solicitudes pendientes.</td></tr>'
+            return
+        }
 
-    if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="6">No hay solicitudes pendientes.</td></tr>'
-        return
+        tbody.innerHTML = items.map((item) => `
+            <tr>
+                <td>${item.solicitud_id || '-'}</td>
+                <td>${item.estudiante_nombre || '-'}</td>
+                <td>${item.beca_nombre || '-'}</td>
+                <td>${formatMoney(item.monto_solicitado)}</td>
+                <td>${statusBadge(item.estado)}</td>
+                <td>${riskBadge(item.riesgo || 'Bajo')}</td>
+                <td><a class="btn btn-secondary" href="/revisor/solicitud/${item.solicitud_id}">Evaluar</a></td>
+            </tr>
+        `).join('')
+    } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="7">Error cargando solicitudes.</td></tr>'
     }
+}
 
-    tbody.innerHTML = items.map((item) => `
-        <tr>
-            <td>${item.solicitud_id || '-'}</td>
-            <td>${item.estudiante_nombre || '-'}</td>
-            <td>${item.beca_nombre || '-'}</td>
-            <td>${formatMoney(item.monto_solicitado)}</td>
-            <td>${item.fecha_envio || '-'}</td>
-            <td><a class="btn btn-secondary" href="/revisor/solicitud/${item.solicitud_id}">Ver</a></td>
-        </tr>
-    `).join('')
+async function tomarCaso(solicitudId) {
+    try {
+        await apiPatch(`/revisor/solicitud/${solicitudId}/tomar`)
+        mostrarToast('Caso tomado con éxito', 'success')
+        cargarDisponibles()
+        cargarPendientes()
+    } catch (error) {
+        mostrarToast(error.message, 'error')
+    }
 }

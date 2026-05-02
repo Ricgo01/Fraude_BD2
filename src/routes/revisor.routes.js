@@ -12,6 +12,8 @@ router.get('/solicitudes/pendientes/count', controller.contarSolicitudesPendient
 router.get('/solicitudes/riesgo', controller.verSolicitudesPorRiesgo)
 router.get('/solicitud/:solicitudId', controller.verDetalleSolicitud)
 router.delete('/solicitud/:solicitudId/motivo', controller.eliminarMotivoSolicitud)
+router.get('/solicitudes/disponibles', controller.verSolicitudesDisponibles)
+router.patch('/solicitud/:solicitudId/tomar', controller.tomarSolicitud)
 
 // ─── Documentos ────────────────────────────────────────────────
 router.patch('/documentos/revisar', controller.marcarDocumentosRevisados)

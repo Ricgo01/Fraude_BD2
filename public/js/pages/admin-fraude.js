@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAuth('admin')) return
+  cargarAlertasPendientes()
   cargarCuentasCompartidas()
   cargarDocumentosReutilizados()
   cargarRedFraude()
@@ -20,7 +21,11 @@ async function cargarCuentasCompartidas() {
       <tr>
         <td>${item.cuenta_id || '-'}</td>
         <td>${item.banco || '-'}</td>
-        <td>${formatNumber(item.numero_estudiantes)}</td>
+        <td>
+          <ul style="margin: 0; padding-left: 20px; font-size: 0.9em;">
+            ${(item.estudiantes || []).map(e => `<li>${e.nombre || e.id}</li>`).join('')}
+          </ul>
+        </td>
         <td>${formatNumber(item.solicitudes ? item.solicitudes.length : 0)}</td>
         <td>${riskBadge(item.riesgo)}</td>
       </tr>
@@ -44,7 +49,11 @@ async function cargarDocumentosReutilizados() {
     tbody.innerHTML = items.map((item) => `
       <tr>
         <td>${item.hash || '-'}</td>
-        <td>${formatNumber(item.numero_estudiantes)}</td>
+        <td>
+          <ul style="margin: 0; padding-left: 20px; font-size: 0.9em;">
+            ${(item.estudiantes || []).map(e => `<li>${e.nombre || e.id}</li>`).join('')}
+          </ul>
+        </td>
         <td>${formatNumber(item.documentos ? item.documentos.length : 0)}</td>
         <td>${formatNumber(item.solicitudes ? item.solicitudes.length : 0)}</td>
         <td>${riskBadge(item.riesgo)}</td>
@@ -70,7 +79,11 @@ async function cargarRedFraude() {
       <tr>
         <td>${item.cuenta_id || '-'}</td>
         <td>${item.dispositivo_id || '-'}</td>
-        <td>${formatNumber(item.numero_estudiantes)}</td>
+        <td>
+          <ul style="margin: 0; padding-left: 20px; font-size: 0.9em;">
+            ${(item.estudiantes || []).map(e => `<li>${e.nombre || e.id}</li>`).join('')}
+          </ul>
+        </td>
         <td>${formatNumber(item.solicitudes ? item.solicitudes.length : 0)}</td>
         <td>${riskBadge(item.riesgo)}</td>
       </tr>
@@ -98,9 +111,36 @@ async function ejecutarDeteccion() {
     cargarCuentasCompartidas()
     cargarDocumentosReutilizados()
     cargarRedFraude()
+    cargarAlertasPendientes()
   } catch (error) {
     message.innerHTML = `
       <div class="alert alert-error">${error.message}</div>
     `
+  }
+}
+
+async function cargarAlertasPendientes() {
+  const tbody = document.getElementById('alerts-table')
+  try {
+    const response = await apiGet('/api/reports/alerts/pending')
+    const alertas = response.data || []
+    
+    if (!alertas.length) {
+      tbody.innerHTML = '<tr><td colspan="6">No hay alertas pendientes en el inbox.</td></tr>'
+      return
+    }
+
+    tbody.innerHTML = alertas.map(alerta => `
+      <tr>
+        <td>${alerta.alerta_id || '-'}</td>
+        <td>${traducirTipoAlerta(alerta.tipo_alerta)}</td>
+        <td>${riskBadge(alerta.nivel_riesgo)}</td>
+        <td>${alerta.puntaje_riesgo || 0}</td>
+        <td><a href="/admin/alertas">${alerta.solicitud_id || '-'}</a></td>
+        <td>${alerta.fecha_creacion || '-'}</td>
+      </tr>
+    `).join('')
+  } catch (error) {
+    tbody.innerHTML = '<tr><td colspan="6">Error cargando inbox de alertas.</td></tr>'
   }
 }

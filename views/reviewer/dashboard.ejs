@@ -6,45 +6,20 @@
 
     <main class="content">
         <section class="hero-admin">
-            <h1>Dashboard del Revisor</h1>
-            <p>Solicitudes asignadas, pendientes y niveles de riesgo.</p>
+            <h1>Dashboard de Trabajo</h1>
+            <p>Mi Bandeja de Entrada - Linea de Ensamblaje</p>
         </section>
 
         <div id="message"></div>
 
-        <section class="cards">
-            <div class="card">
-                <h3>Pendientes</h3>
-                <strong id="pendientes-count">0</strong>
-                <small>Solicitudes por resolver</small>
-            </div>
-
-            <div class="card">
-                <h3>Riesgo alto</h3>
-                <strong id="riesgo-alto-count">0</strong>
-                <small>Con alertas criticas</small>
-            </div>
-
-            <div class="card">
-                <h3>Riesgo medio</h3>
-                <strong id="riesgo-medio-count">0</strong>
-                <small>Alertas moderadas</small>
-            </div>
-
-            <div class="card">
-                <h3>Riesgo bajo</h3>
-                <strong id="riesgo-bajo-count">0</strong>
-                <small>Casos de baja prioridad</small>
-            </div>
-        </section>
-
+        <!-- Seccion A: Solicitudes Disponibles -->
         <section class="section">
             <div class="actions" style="justify-content: space-between;">
                 <div>
-                    <h2>Solicitudes pendientes</h2>
-                    <p>Listado de solicitudes asignadas a revisar.</p>
+                    <h2>Solicitudes Disponibles</h2>
+                    <p>Piscina de solicitudes que nadie ha tomado.</p>
                 </div>
-                <button class="btn btn-secondary" onclick="cargarDashboardRevisor()">Actualizar</button>
+                <button class="btn btn-secondary" onclick="cargarDisponibles()">Refrescar</button>
             </div>
 
             <div class="table-wrapper">
@@ -59,8 +34,47 @@
                             <th>Accion</th>
                         </tr>
                     </thead>
-                    <tbody id="pendientes-table">
+                    <tbody id="disponibles-table">
                         <tr><td colspan="6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Seccion B: Mis Casos Pendientes -->
+        <section class="section">
+            <div class="actions" style="justify-content: space-between;">
+                <div>
+                    <h2>Mis Casos Pendientes</h2>
+                    <p>Solicitudes asignadas a mi cola de revision.</p>
+                </div>
+                <div class="actions">
+                    <label>Filtro por Nivel de Riesgo:</label>
+                    <select class="form-control" id="riesgo-filter" onchange="cargarPendientes()">
+                        <option value="">Todos</option>
+                        <option value="bajo">Bajo</option>
+                        <option value="medio">Medio</option>
+                        <option value="alto">Alto</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="cargarPendientes()">Refrescar</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Beca</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Riesgo</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendientes-table">
+                        <tr><td colspan="7">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>

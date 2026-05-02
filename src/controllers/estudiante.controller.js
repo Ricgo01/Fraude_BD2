@@ -444,3 +444,394 @@ exports.verDocumentos = async (req, res) => {
         await session.close()
     }
 }
+
+exports.listarCuentas = async (req, res) => {
+    const session = driver.session()
+    try {
+        const estudianteId = req.usuario.id
+                const result = await session.run(
+                        `MATCH (e:Estudiante {ID: $estudianteId})-[r:USA_CUENTA]->(c:Cuenta)
+             RETURN {
+                 ID: c.ID,
+                 Banco: c.Banco,
+                 Tipo_Cuenta: c.Tipo_Cuenta,
+                 Terminacion: c.Terminacion,
+                 Activa: c.Activa,
+                 Fecha_Registro: c.Fecha_Registro,
+                 Principal: r.Principal,
+                 Verificada: r.Verificada
+             } AS cuenta
+             ORDER BY c.Fecha_Registro DESC`,
+                        { estudianteId }
+                )
+                const cuentas = result.records.map(r => r.get('cuenta'))
+        res.status(200).json({ success: true, data: cuentas })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.listarDirecciones = async (req, res) => {
+    const session = driver.session()
+    try {
+        const estudianteId = req.usuario.id
+                const result = await session.run(
+                        `MATCH (e:Estudiante {ID: $estudianteId})-[r:VIVE_EN]->(d:Direccion)
+             RETURN {
+                 ID: d.ID,
+                 Direccion: d.Direccion,
+                 Municipio: d.Municipio,
+                 Departamento: d.Departamento,
+                 Verificada: d.Verificada,
+                 Fecha_Actualizacion: d.Fecha_Actualizacion,
+                 Desde_Fecha: r.Desde_Fecha,
+                 Tipo_Residencia: r.Tipo_Residencia
+             } AS direccion
+             ORDER BY d.Fecha_Actualizacion DESC`,
+                        { estudianteId }
+                )
+                const direcciones = result.records.map(r => r.get('direccion'))
+        res.status(200).json({ success: true, data: direcciones })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.listarInstituciones = async (req, res) => {
+    const session = driver.session()
+    try {
+        const estudianteId = req.usuario.id
+                const result = await session.run(
+                        `MATCH (e:Estudiante {ID: $estudianteId})-[r:ESTUDIA_EN]->(i:Institucion)
+             RETURN {
+                 ID: i.ID,
+                 Nombre: i.Nombre,
+                 Tipo: i.Tipo,
+                 Departamento: i.Departamento,
+                 Publica: i.Publica,
+                 Fecha_Convenio: i.Fecha_Convenio,
+                 Desde_Fecha: r.Desde_Fecha,
+                 Carrera: r.Carrera,
+                 Estado_Academico: r.Estado_Academico
+             } AS institucion
+             ORDER BY i.Fecha_Convenio DESC`,
+                        { estudianteId }
+                )
+                const instituciones = result.records.map(r => r.get('institucion'))
+        res.status(200).json({ success: true, data: instituciones })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.listarDispositivos = async (req, res) => {
+    const session = driver.session()
+    try {
+        const estudianteId = req.usuario.id
+                const result = await session.run(
+                        `MATCH (e:Estudiante {ID: $estudianteId})-[r:USA_DISPOSITIVO]->(d:Dispositivo)
+             RETURN {
+                 ID: d.ID,
+                 Navegador: d.Navegador,
+                 Sistema_Operativo: d.Sistema_Operativo,
+                 Activo: d.Activo,
+                 Fecha_Registro: d.Fecha_Registro,
+                 Ultimo_Uso: r.Ultimo_Uso,
+                 Veces_Usado: r.Veces_Usado
+             } AS dispositivo
+             ORDER BY d.Fecha_Registro DESC`,
+                        { estudianteId }
+                )
+                const dispositivos = result.records.map(r => r.get('dispositivo'))
+        res.status(200).json({ success: true, data: dispositivos })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.listarReferencias = async (req, res) => {
+    const session = driver.session()
+    try {
+        const estudianteId = req.usuario.id
+                const result = await session.run(
+                        `MATCH (e:Estudiante {ID: $estudianteId})-[rel:AVALADO_POR]->(r:Referencia)
+             RETURN {
+                 ID: r.ID,
+                 Nombre: r.Nombre,
+                 Telefono: r.Telefono,
+                 Relacion: r.Relacion,
+                 Verificada: r.Verificada,
+                 Fecha_Registro: r.Fecha_Registro,
+                 Tipo_Aval: rel.Tipo_Aval
+             } AS referencia
+             ORDER BY r.Fecha_Registro DESC`,
+                        { estudianteId }
+                )
+                const referencias = result.records.map(r => r.get('referencia'))
+        res.status(200).json({ success: true, data: referencias })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.listarBecas = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (b:Beca)
+       RETURN b ORDER BY b.Nombre_Beca ASC`
+        )
+        const becas = result.records.map(r => r.get('b').properties)
+        res.status(200).json({ success: true, data: becas })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.actualizarCuenta = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { cuentaId } = req.params
+        const estudianteId = req.usuario.id
+        const { Banco, Tipo_Cuenta, Terminacion, Activa, Fecha_Registro, Principal, Verificada } = req.body
+
+        const result = await session.run(
+            `MATCH (e:Estudiante {ID: $estudianteId})-[r:USA_CUENTA]->(c:Cuenta {ID: $cuentaId})
+       SET c.Banco = $banco,
+           c.Tipo_Cuenta = $tipoCuenta,
+           c.Terminacion = toInteger($terminacion),
+           c.Activa = toBoolean($activa),
+           c.Fecha_Registro = date($fechaRegistro),
+           r.Fecha_Registro = date($fechaRegistro),
+           r.Principal = toBoolean($principal),
+           r.Verificada = toBoolean($verificada)
+       RETURN c`,
+            {
+                estudianteId,
+                cuentaId,
+                banco: Banco,
+                tipoCuenta: Tipo_Cuenta,
+                terminacion: Terminacion,
+                activa: Activa,
+                fechaRegistro: Fecha_Registro,
+                principal: Principal,
+                verificada: Verificada
+            }
+        )
+
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Cuenta no encontrada' })
+        }
+
+        res.status(200).json({ success: true, message: 'Cuenta actualizada', data: result.records[0].get('c').properties })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.actualizarDireccion = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { direccionId } = req.params
+        const estudianteId = req.usuario.id
+        const { Direccion, Municipio, Departamento, Verificada, Desde_Fecha, Tipo_Residencia } = req.body
+
+        const result = await session.run(
+            `MATCH (e:Estudiante {ID: $estudianteId})-[r:VIVE_EN]->(d:Direccion {ID: $direccionId})
+       SET d.Direccion = $direccion,
+           d.Municipio = $municipio,
+           d.Departamento = $departamento,
+           d.Verificada = toBoolean($verificada),
+           d.Fecha_Actualizacion = date(),
+           r.Desde_Fecha = date($desdeFecha),
+           r.Verificada = toBoolean($verificada),
+           r.Tipo_Residencia = $tipoResidencia
+       RETURN d`,
+            {
+                estudianteId,
+                direccionId,
+                direccion: Direccion,
+                municipio: Municipio,
+                departamento: Departamento,
+                verificada: Verificada,
+                desdeFecha: Desde_Fecha,
+                tipoResidencia: Tipo_Residencia
+            }
+        )
+
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Direccion no encontrada' })
+        }
+
+        res.status(200).json({ success: true, message: 'Direccion actualizada', data: result.records[0].get('d').properties })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.actualizarInstitucion = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { institucionId } = req.params
+        const estudianteId = req.usuario.id
+        const { Nombre, Tipo, Departamento, Publica, Fecha_Convenio, Desde_Fecha, Carrera, Estado_Academico } = req.body
+
+        const result = await session.run(
+            `MATCH (e:Estudiante {ID: $estudianteId})-[r:ESTUDIA_EN]->(i:Institucion {ID: $institucionId})
+       SET i.Nombre = $nombre,
+           i.Tipo = $tipo,
+           i.Departamento = $departamento,
+           i.Publica = toBoolean($publica),
+           i.Fecha_Convenio = date($fechaConvenio),
+           r.Desde_Fecha = date($desdeFecha),
+           r.Carrera = $carrera,
+           r.Estado_Academico = $estadoAcademico
+       RETURN i`,
+            {
+                estudianteId,
+                institucionId,
+                nombre: Nombre,
+                tipo: Tipo,
+                departamento: Departamento,
+                publica: Publica,
+                fechaConvenio: Fecha_Convenio,
+                desdeFecha: Desde_Fecha,
+                carrera: Carrera,
+                estadoAcademico: Estado_Academico
+            }
+        )
+
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Institucion no encontrada' })
+        }
+
+        res.status(200).json({ success: true, message: 'Institucion actualizada', data: result.records[0].get('i').properties })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.actualizarDispositivo = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { dispositivoId } = req.params
+        const estudianteId = req.usuario.id
+        const { Navegador, Sistema_Operativo } = req.body
+
+        const result = await session.run(
+            `MATCH (e:Estudiante {ID: $estudianteId})-[r:USA_DISPOSITIVO]->(d:Dispositivo {ID: $dispositivoId})
+       SET d.Navegador = $navegador,
+           d.Sistema_Operativo = $sistemaOp,
+           r.Ultimo_Uso = date()
+       RETURN d`,
+            {
+                estudianteId,
+                dispositivoId,
+                navegador: Navegador,
+                sistemaOp: Sistema_Operativo
+            }
+        )
+
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Dispositivo no encontrado' })
+        }
+
+        res.status(200).json({ success: true, message: 'Dispositivo actualizado', data: result.records[0].get('d').properties })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.actualizarReferencia = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { referenciaId } = req.params
+        const estudianteId = req.usuario.id
+        const { Nombre, Telefono, Relacion, Verificada, Tipo_Aval } = req.body
+
+        const result = await session.run(
+            `MATCH (e:Estudiante {ID: $estudianteId})-[rel:AVALADO_POR]->(r:Referencia {ID: $referenciaId})
+       SET r.Nombre = $nombre,
+           r.Telefono = $telefono,
+           r.Relacion = $relacion,
+           r.Verificada = toBoolean($verificada),
+           r.Fecha_Registro = date(),
+           rel.Tipo_Aval = $tipoAval
+       RETURN r`,
+            {
+                estudianteId,
+                referenciaId,
+                nombre: Nombre,
+                telefono: Telefono,
+                relacion: Relacion,
+                verificada: Verificada,
+                tipoAval: Tipo_Aval
+            }
+        )
+
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Referencia no encontrada' })
+        }
+
+        res.status(200).json({ success: true, message: 'Referencia actualizada', data: result.records[0].get('r').properties })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.actualizarDocumento = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { documentoId } = req.params
+        const estudianteId = req.usuario.id
+        const { Tipo, Hash, Palabras_Clave } = req.body
+
+        const result = await session.run(
+            `MATCH (e:Estudiante {ID: $estudianteId})-[:ENVIA]->(:Solicitud)-[:ADJUNTA]->(d:Documento {ID: $documentoId})
+       SET d.Tipo = $tipo,
+           d.Hash = $hash,
+           d.Palabras_Clave = $palabrasClave,
+           d.Tamaño_KB = toFloat(size($hash))
+       RETURN d`,
+            {
+                estudianteId,
+                documentoId,
+                tipo: Tipo,
+                hash: Hash,
+                palabrasClave: Palabras_Clave
+            }
+        )
+
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Documento no encontrado' })
+        }
+
+        res.status(200).json({ success: true, message: 'Documento actualizado', data: result.records[0].get('d').properties })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}

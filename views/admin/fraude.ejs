@@ -14,10 +14,31 @@
     <section class="section">
       <div class="actions" style="justify-content: space-between;">
         <div>
-          <h2>Deteccion automatica</h2>
-          <p>Ejecuta la regla automatica que genera alertas.</p>
+          <h2>Radar Principal</h2>
+          <p>Deteccion automatica y central de alertas tempranas.</p>
         </div>
-        <button class="btn btn-primary" onclick="ejecutarDeteccion()">Ejecutar check-all</button>
+        <button class="btn btn-primary" onclick="ejecutarDeteccion()">Ejecutar Deteccion Integral de Fraudes</button>
+      </div>
+
+      <div class="table-wrapper" style="margin-top: 20px; max-height: 400px; overflow-y: auto;">
+        <h3>Inbox de Alertas Automáticas (Pendientes)</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID alerta</th>
+              <th>Tipo</th>
+              <th>Nivel</th>
+              <th>Puntaje</th>
+              <th>Solicitud</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-table">
+            <tr>
+              <td colspan="6">Cargando datos...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -30,7 +51,7 @@
         <button class="btn btn-secondary" onclick="cargarCuentasCompartidas()">Actualizar</button>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
         <table class="table">
           <thead>
             <tr>
@@ -57,7 +78,7 @@
         <button class="btn btn-secondary" onclick="cargarDocumentosReutilizados()">Actualizar</button>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
         <table class="table">
           <thead>
             <tr>
@@ -84,7 +105,7 @@
         <button class="btn btn-secondary" onclick="cargarRedFraude()">Actualizar</button>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
         <table class="table">
           <thead>
             <tr>

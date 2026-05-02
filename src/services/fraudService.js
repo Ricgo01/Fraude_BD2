@@ -188,7 +188,8 @@ class FraudService {
               cuenta_id: fraudCase.cuenta_id,
               banco: fraudCase.banco,
               num_estudiantes: fraudCase.numero_estudiantes,
-            }
+            },
+            fraudCase.cuenta_id // dedupKey
           );
           results.alertsCreated++;
         }
@@ -211,7 +212,8 @@ class FraudService {
               hash: fraudCase.hash,
               num_estudiantes: fraudCase.numero_estudiantes,
               tipo_documento: fraudCase.documentos[0]?.tipo,
-            }
+            },
+            fraudCase.hash // dedupKey
           );
           results.alertsCreated++;
         }
@@ -234,7 +236,8 @@ class FraudService {
               cuenta_id: fraudCase.cuenta_id,
               dispositivo_id: fraudCase.dispositivo_id,
               num_estudiantes: fraudCase.numero_estudiantes,
-            }
+            },
+            `${fraudCase.cuenta_id}_${fraudCase.dispositivo_id}` // dedupKey
           );
           results.alertsCreated++;
         }

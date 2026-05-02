@@ -26,6 +26,37 @@
 
       <button class="btn btn-primary" onclick="guardarDispositivo()">Guardar dispositivo</button>
     </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Dispositivos registrados</h2>
+          <p>Selecciona un dispositivo para editarlo.</p>
+        </div>
+        <div class="actions">
+          <select class="form-control" id="dispositivo-select" style="max-width: 280px;">
+            <option value="">Selecciona un dispositivo</option>
+          </select>
+          <button class="btn btn-secondary" onclick="seleccionarDispositivo()">Cargar</button>
+          <button class="btn btn-primary" onclick="actualizarDispositivo()">Actualizar dispositivo</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Navegador</th>
+              <th>Sistema operativo</th>
+              <th>Activo</th>
+            </tr>
+          </thead>
+          <tbody id="dispositivos-table">
+            <tr><td colspan="3">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 

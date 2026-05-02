@@ -45,6 +45,28 @@ exports.crearBeca = async (req, res) => {
     } finally { await session.close() }
 }
 
+exports.actualizarBeca = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { id } = req.params
+        const { Nombre_Beca, Categoria, Monto_Max, Renovable } = req.body
+        const result = await session.run(
+            `MATCH (b:Programa:Beca {ID: $id})
+             SET b.Nombre_Beca = $nombreBeca,
+                 b.Categoria = $categoria,
+                 b.Monto_Max = toFloat($montoMax),
+                 b.Renovable = toBoolean($renovable)
+             RETURN b`,
+            { id, nombreBeca: Nombre_Beca, categoria: Categoria, montoMax: Monto_Max, renovable: Renovable }
+        )
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Beca no encontrada' })
+        }
+        res.status(200).json({ success: true, message: 'Beca actualizada', data: result.records[0].get('b').properties })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
 
 exports.crearAlertaManual = async (req, res) => {
     const session = driver.session()
@@ -200,6 +222,76 @@ exports.verAlertasActivas = async (req, res) => {
         )
         const alertas = result.records.map(r => r.get('a').properties)
         res.status(200).json({ success: true, data: alertas })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.listarAlertas = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (a:Alerta)
+       RETURN a ORDER BY a.Fecha_Creacion DESC`
+        )
+        const alertas = result.records.map(r => r.get('a').properties)
+        res.status(200).json({ success: true, data: alertas })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.listarSolicitudes = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (s:Solicitud)
+       RETURN s ORDER BY s.Fecha_Envio DESC`
+        )
+        const solicitudes = result.records.map(r => r.get('s').properties)
+        res.status(200).json({ success: true, data: solicitudes })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.listarEstudiantes = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (e:Estudiante)
+       RETURN e ORDER BY e.Nombre_Completo ASC`
+        )
+        const estudiantes = result.records.map(r => r.get('e').properties)
+        res.status(200).json({ success: true, data: estudiantes })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.listarDispositivos = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (d:Dispositivo)
+       RETURN d ORDER BY d.Fecha_Registro DESC`
+        )
+        const dispositivos = result.records.map(r => r.get('d').properties)
+        res.status(200).json({ success: true, data: dispositivos })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.listarBecas = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (b:Beca)
+       RETURN b ORDER BY b.Nombre_Beca ASC`
+        )
+        const becas = result.records.map(r => r.get('b').properties)
+        res.status(200).json({ success: true, data: becas })
     } catch (error) {
         res.status(500).json({ success: false, message: error.message })
     } finally { await session.close() }

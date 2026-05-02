@@ -1,31 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAuth('admin')) return
   cargarDashboard()
+  cargarPagosFallidos()
+  cargarBecasSelect()
 })
+
+async function cargarBecasSelect() {
+  const select = document.getElementById('beca-id-select')
+  try {
+    const response = await apiGet('/admin/lista/becas')
+    const becas = response.data || []
+    if (becas.length === 0) {
+      select.innerHTML = '<option value="">Sin becas</option>'
+      return
+    }
+    select.innerHTML = '<option value="">Selecciona una beca</option>' + becas.map(b => `<option value="${b.id}">${b.nombre} (${b.id})</option>`).join('')
+  } catch (error) {
+    select.innerHTML = '<option value="">Error cargando</option>'
+  }
+}
 
 async function cargarDashboard() {
   const message = document.getElementById('message')
 
   const results = await Promise.allSettled([
     apiGet('/api/reports/alerts/stats'),
-    apiGet('/api/reports/accounts/stats'),
-    apiGet('/api/reports/alerts/pending')
+    apiGet('/api/reports/accounts/stats')
   ])
 
   const alertStatsResult = results[0]
   const accountStatsResult = results[1]
-  const pendingAlertsResult = results[2]
 
   // Alertas
   if (alertStatsResult.status === 'fulfilled') {
     const stats = alertStatsResult.value.data || {}
-
     document.getElementById('total-alertas').textContent = formatNumber(stats.total_alertas)
     document.getElementById('alertas-pendientes').textContent = formatNumber(stats.alertas_pendientes)
     document.getElementById('riesgo-promedio').textContent = stats.riesgo_promedio || 0
   } else {
-    console.error('Error cargando estadísticas de alertas:', alertStatsResult.reason)
-
     document.getElementById('total-alertas').textContent = '0'
     document.getElementById('alertas-pendientes').textContent = '0'
     document.getElementById('riesgo-promedio').textContent = '0'
@@ -34,84 +46,67 @@ async function cargarDashboard() {
   // Cuentas
   if (accountStatsResult.status === 'fulfilled') {
     const cuentasResumen = accountStatsResult.value.resumen || {}
-
     document.getElementById('cuentas-compartidas').textContent =
       formatNumber(cuentasResumen.cuentas_compartidas)
   } else {
-    console.error('Error cargando estadísticas de cuentas:', accountStatsResult.reason)
-
     document.getElementById('cuentas-compartidas').textContent = '0'
-
-    message.innerHTML += `
-      <div class="alert alert-error">
-        No se pudieron cargar las estadísticas de cuentas. Revisa el endpoint 
-        /api/reports/accounts/stats.
-      </div>
-    `
-  }
-
-  // Alertas pendientes
-  if (pendingAlertsResult.status === 'fulfilled') {
-    const alertas = pendingAlertsResult.value.data || []
-    renderAlertas(alertas)
-  } else {
-    console.error('Error cargando alertas pendientes:', pendingAlertsResult.reason)
-
-    document.getElementById('alerts-table').innerHTML = `
-      <tr>
-        <td colspan="6">No se pudieron cargar las alertas pendientes.</td>
-      </tr>
-    `
   }
 }
 
-function renderAlertas(alertas) {
-  const tbody = document.getElementById('alerts-table')
+async function cargarPromediosBajos() {
+  const select = document.getElementById('beca-id-select')
+  const becaId = select.value.trim()
+  const tbody = document.getElementById('promedios-table')
 
-  if (!alertas || alertas.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6">No hay alertas pendientes.</td>
-      </tr>
-    `
+  if (!becaId) {
+    mostrarToast('Selecciona una beca primero', 'warning')
     return
   }
 
-  tbody.innerHTML = alertas.slice(0, 8).map(alerta => `
-    <tr>
-      <td>${alerta.alerta_id || '-'}</td>
-      <td>${traducirTipoAlerta(alerta.tipo_alerta)}</td>
-      <td>${riskBadge(alerta.nivel_riesgo)}</td>
-      <td>${alerta.puntaje_riesgo || 0}</td>
-      <td>${alerta.solicitud_id || '-'}</td>
-      <td>${alerta.fecha_creacion || '-'}</td>
-    </tr>
-  `).join('')
-}
-
-async function ejecutarDeteccion() {
-  const confirmar = confirm('¿Deseas ejecutar la detección automática de fraude?')
-
-  if (!confirmar) return
+  tbody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>'
 
   try {
-    const result = await apiPost('/api/reports/fraud/check-all', {})
+    const response = await apiGet(`/admin/estudiantes/promedio/${becaId}`)
+    const items = response.data || []
+    
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="3">No se encontraron estudiantes sospechosos.</td></tr>'
+      return
+    }
 
-    document.getElementById('message').innerHTML = `
-      <div class="alert alert-success">
-        Detección ejecutada correctamente. Alertas creadas:
-        ${result.resumen ? result.resumen['alertas_autom\u00e1ticas_creadas'] || 0 : 0}
-      </div>
-    `
-
-    await cargarDashboard()
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td>${item.id || '-'}</td>
+        <td>${item.nombre || '-'}</td>
+        <td style="color: #ef4444; font-weight: bold;">${item.promedio || 0}</td>
+      </tr>
+    `).join('')
   } catch (error) {
-    console.error(error)
+    tbody.innerHTML = `<tr><td colspan="3">Error: ${error.message}</td></tr>`
+  }
+}
 
-    document.getElementById('message').innerHTML = `
-      <div class="alert alert-error">
-        No se pudo ejecutar la detección automática.
-      </div>
-    `
+async function cargarPagosFallidos() {
+  const tbody = document.getElementById('pagos-table')
+  tbody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>'
+
+  try {
+    const response = await apiGet('/admin/pagos/fallidos')
+    const items = response.data || []
+    
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="3">No hay pagos fallidos en bucle.</td></tr>'
+      return
+    }
+
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td>${item.estudiante_id || '-'}</td>
+        <td>${item.nombre || '-'}</td>
+        <td style="color: #ef4444; font-weight: bold;">${item.intentos_fallidos || 0}</td>
+      </tr>
+    `).join('')
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="3">Error: ${error.message}</td></tr>`
   }
 }

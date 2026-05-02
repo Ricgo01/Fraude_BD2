@@ -6,141 +6,211 @@
  */
 
 // ============================================================================
-// TAREA 1: CONSULTAS DE FRAUDE (3 patrones principales)
+// TAREA 1: CONSULTAS DE FRAUDE
 // ============================================================================
 
 /**
  * QUERY 1: CUENTAS BANCARIAS COMPARTIDAS
- * Detecta múltiples estudiantes DISTINTOS conectados a la misma Cuenta vía USA_CUENTA
- * Retorna: { cuenta_id, banco, num_estudiantes, estudiantes: [...], solicitudes: [...] }
  */
 const SHARED_ACCOUNTS_QUERY = `
-  MATCH (e1:Estudiante)-[:USA_CUENTA]->(cuenta:Cuenta)
-  WHERE COUNT { (e1)-[:USA_CUENTA]->(cuenta) } > 0
-  WITH cuenta, COUNT(DISTINCT e1) AS num_estudiantes, COLLECT(DISTINCT e1.ID) AS estudiante_ids
+  MATCH (e:Estudiante)-[:USA_CUENTA]->(cuenta:Cuenta)
+  WITH cuenta, COLLECT(DISTINCT e) AS estudiantes
+  WITH cuenta, estudiantes, SIZE(estudiantes) AS num_estudiantes
   WHERE num_estudiantes > 1
-  MATCH (estudiantes:Estudiante)-[:USA_CUENTA]->(cuenta)
-  WHERE estudiantes.ID IN estudiante_ids
-  WITH cuenta, num_estudiantes, estudiante_ids, 
-       COLLECT(DISTINCT {
-         id: estudiantes.ID,
-         nombre: estudiantes.Nombre_Completo,
-         promedio: estudiantes.Promedio,
-         fecha_registro: estudiantes.Fecha_Registro
-       }) AS detalles_estudiantes
-  MATCH (solicitudes:Solicitud)<-[:ENVIA]-(e:Estudiante)
-  WHERE e.ID IN estudiante_ids
-  WITH cuenta, num_estudiantes, detalles_estudiantes,
-       COLLECT(DISTINCT {
-         id: solicitudes.ID,
-         fecha_envio: solicitudes.Fecha_Envio,
-         estado: solicitudes.Estado,
-         monto: solicitudes.Monto_Solicitado,
-         estudiante_id: e.ID
-       }) AS detalles_solicitudes
+
+  OPTIONAL MATCH (e:Estudiante)-[:USA_CUENTA]->(cuenta)
+  WHERE e IN estudiantes
+  OPTIONAL MATCH (e)-[:ENVIA]->(s:Solicitud)
+
+  WITH 
+    cuenta,
+    estudiantes,
+    num_estudiantes,
+    COLLECT(DISTINCT {
+      id: s.ID,
+      fecha_envio: s.Fecha_Envio,
+      estado: s.Estado,
+      monto: s.Monto_Solicitado,
+      estudiante_id: e.ID
+    }) AS detalles_solicitudes
+
+  WITH cuenta, estudiantes, num_estudiantes, detalles_solicitudes
+  ORDER BY num_estudiantes DESC
+
   RETURN {
     cuenta_id: cuenta.ID,
     banco: cuenta.Banco,
     tipo_cuenta: cuenta.Tipo_Cuenta,
     terminacion: cuenta.Terminacion,
     numero_estudiantes: num_estudiantes,
-    estudiantes: detalles_estudiantes,
+    estudiantes: [
+      est IN estudiantes | {
+        id: est.ID,
+        nombre: est.Nombre_Completo,
+        promedio: est.Promedio,
+        activo: est.Activo,
+        fecha_registro: est.Fecha_Registro
+      }
+    ],
     solicitudes: detalles_solicitudes,
     riesgo: 'ALTO'
   } AS resultado
-  ORDER BY num_estudiantes DESC
 `;
 
 /**
  * QUERY 2: DOCUMENTOS REUTILIZADOS
- * Detecta múltiples Documentos con el mismo Hash adjuntos a solicitudes de ESTUDIANTES DISTINTOS
- * Retorna: { hash, tipo, num_documentos, num_estudiantes, documentos: [...], estudiantes: [...] }
  */
 const REUSED_DOCUMENTS_QUERY = `
-  MATCH (est1:Estudiante)-[:ENVIA]->(sol1:Solicitud)-[:ADJUNTA]->(doc1:Documento)
-  WITH doc1.Hash AS hash, COUNT(DISTINCT est1.ID) AS num_estudiantes
-  WHERE num_estudiantes > 1
   MATCH (est:Estudiante)-[:ENVIA]->(sol:Solicitud)-[:ADJUNTA]->(doc:Documento)
-  WHERE doc.Hash = hash
-  WITH hash, num_estudiantes, 
-       COLLECT(DISTINCT {
-         id: doc.ID,
-         tipo: doc.Tipo,
-         hash: doc.Hash,
-         fecha_carga: doc.Fecha_Carga,
-         tamaño_kb: doc.Tamaño_KB,
-         es_valido: doc.Es_Valido
-       }) AS detalles_documentos,
-       COLLECT(DISTINCT {
-         id: est.ID,
-         nombre: est.Nombre_Completo,
-         fecha_registro: est.Fecha_Registro
-       }) AS detalles_estudiantes,
-       COLLECT(DISTINCT {
-         id: sol.ID,
-         fecha_envio: sol.Fecha_Envio,
-         estado: sol.Estado,
-         estudiante_id: est.ID
-       }) AS detalles_solicitudes
+  WHERE doc.Hash IS NOT NULL AND trim(doc.Hash) <> ''
+
+  WITH 
+    doc.Hash AS hash,
+    COLLECT(DISTINCT est) AS estudiantes,
+    COLLECT(DISTINCT sol) AS solicitudes,
+    COLLECT(DISTINCT doc) AS documentos
+
+  WITH 
+    hash,
+    estudiantes,
+    solicitudes,
+    documentos,
+    SIZE(estudiantes) AS num_estudiantes,
+    SIZE(documentos) AS num_documentos
+
+  WHERE num_estudiantes > 1
+
+  WITH 
+    hash,
+    estudiantes,
+    solicitudes,
+    documentos,
+    num_estudiantes,
+    num_documentos
+
+  ORDER BY num_estudiantes DESC, num_documentos DESC
+
   RETURN {
     hash: hash,
-    numero_documentos: COUNT(DISTINCT hash),
+    numero_documentos: num_documentos,
     numero_estudiantes: num_estudiantes,
-    documentos: detalles_documentos,
-    estudiantes: detalles_estudiantes,
-    solicitudes: detalles_solicitudes,
+    documentos: [
+      documento IN documentos | {
+        id: documento.ID,
+        tipo: documento.Tipo,
+        hash: documento.Hash,
+        fecha_carga: documento.Fecha_Carga,
+        tamaño_kb: documento['Tamaño_KB'],
+        es_valido: documento.Es_Valido
+      }
+    ],
+    estudiantes: [
+      estudiante IN estudiantes | {
+        id: estudiante.ID,
+        nombre: estudiante.Nombre_Completo,
+        fecha_registro: estudiante.Fecha_Registro
+      }
+    ],
+    solicitudes: [
+      solicitud IN solicitudes | {
+        id: solicitud.ID,
+        fecha_envio: solicitud.Fecha_Envio,
+        estado: solicitud.Estado,
+        monto: solicitud.Monto_Solicitado
+      }
+    ],
     riesgo: 'CRITICO'
   } AS resultado
-  ORDER BY num_estudiantes DESC
 `;
 
 /**
- * QUERY 3: RED DE FRAUDE (Dispositivo + Cuenta)
- * Detecta 2+ estudiantes que comparten TANTO Cuenta COMO Dispositivo
- * Retorna: { estudiante_ids, cuenta_id, dispositivo_id, num_nodos, riesgo }
+ * QUERY 3: RED DE FRAUDE
+ * Detecta estudiantes que comparten la misma Cuenta y el mismo Dispositivo.
  */
 const FRAUD_NETWORK_QUERY = `
-  MATCH (e1:Estudiante)-[:USA_CUENTA]->(c:Cuenta),
-        (e1)-[:USA_DISPOSITIVO]->(d:Dispositivo),
-        (e2:Estudiante)-[:USA_CUENTA]->(c),
-        (e2)-[:USA_DISPOSITIVO]->(d)
-  WHERE e1.ID < e2.ID
-  WITH c, d, COLLECT(DISTINCT e1) + COLLECT(DISTINCT e2) AS estudiantes_raw
-  UNWIND estudiantes_raw AS est
-  WITH c, d, COLLECT(DISTINCT est) AS estudiantes
-  WHERE SIZE(estudiantes) > 1
-  MATCH (e:Estudiante)
-  WHERE e IN estudiantes
-  WITH c, d, estudiantes,
-       COLLECT(DISTINCT {
-         id: e.ID,
-         nombre: e.Nombre_Completo,
-         promedio: e.Promedio,
-         activo: e.Activo
-       }) AS detalles_estudiantes
-  MATCH (s:Solicitud)<-[:ENVIA]-(e:Estudiante)
-  WHERE e IN estudiantes
-  WITH c, d, detalles_estudiantes,
-       COLLECT(DISTINCT {
-         id: s.ID,
-         fecha_envio: s.Fecha_Envio,
-         estado: s.Estado,
-         monto: s.Monto_Solicitado,
-         estudiante_id: e.ID
-       }) AS detalles_solicitudes
+  MATCH (e:Estudiante)-[:USA_CUENTA]->(c:Cuenta)
+  MATCH (e)-[:USA_DISPOSITIVO]->(d:Dispositivo)
+
+  WITH c, d, COLLECT(DISTINCT e) AS estudiantes
+  WITH c, d, estudiantes, SIZE(estudiantes) AS num_estudiantes
+  WHERE num_estudiantes > 1
+
+  OPTIONAL MATCH (x:Estudiante)-[:ENVIA]->(s:Solicitud)
+  WHERE x IN estudiantes
+
+  WITH 
+    c,
+    d,
+    estudiantes,
+    num_estudiantes,
+    COLLECT(DISTINCT {
+      id: s.ID,
+      fecha_envio: s.Fecha_Envio,
+      estado: s.Estado,
+      monto: s.Monto_Solicitado,
+      estudiante_id: x.ID
+    }) AS detalles_solicitudes
+
+  WITH c, d, estudiantes, num_estudiantes, detalles_solicitudes
+  ORDER BY num_estudiantes DESC
+
   RETURN {
     cuenta_id: c.ID,
     banco: c.Banco,
+    tipo_cuenta: c.Tipo_Cuenta,
+    terminacion: c.Terminacion,
     dispositivo_id: d.ID,
     navegador: d.Navegador,
     sistema_operativo: d.Sistema_Operativo,
     ip_hash: d.IP_Hash,
-    numero_estudiantes: SIZE(detalles_estudiantes),
-    estudiantes: detalles_estudiantes,
+    numero_estudiantes: num_estudiantes,
+    estudiantes: [
+      est IN estudiantes | {
+        id: est.ID,
+        nombre: est.Nombre_Completo,
+        promedio: est.Promedio,
+        activo: est.Activo
+      }
+    ],
     solicitudes: detalles_solicitudes,
     riesgo: 'CRITICO'
   } AS resultado
-  ORDER BY SIZE(detalles_estudiantes) DESC
+`;
+
+/**
+ * QUERY EXTRA: SOLICITUDES DUPLICADAS
+ * Detecta un mismo estudiante con más de una solicitud activa para la misma beca.
+ */
+const DUPLICATE_APPLICATIONS_QUERY = `
+  MATCH (e:Estudiante)-[:ENVIA]->(s:Solicitud)-[:APLICA_A]->(b:Beca)
+  WHERE s.Estado IN ['Pendiente', 'En revisión', 'En Revisión']
+  
+  WITH e, b, COLLECT(s) AS solicitudes
+  WHERE SIZE(solicitudes) > 1
+
+  RETURN {
+    estudiante: {
+      id: e.ID,
+      nombre: e.Nombre_Completo,
+      activo: e.Activo,
+      promedio: e.Promedio
+    },
+    beca: {
+      id: b.ID,
+      nombre: b.Nombre_Beca,
+      categoria: b.Categoria,
+      monto_maximo: b.Monto_Max
+    },
+    total_solicitudes: SIZE(solicitudes),
+    solicitudes: [sol IN solicitudes | {
+      id: sol.ID,
+      estado: sol.Estado,
+      fecha_envio: sol.Fecha_Envio,
+      monto_solicitado: sol.Monto_Solicitado,
+      motivo_apoyo: sol.Motivo_Apoyo
+    }],
+    riesgo: 'MEDIO'
+  } AS resultado
 `;
 
 // ============================================================================
@@ -149,14 +219,17 @@ const FRAUD_NETWORK_QUERY = `
 
 /**
  * QUERY 4: SOLICITUDES PENDIENTES POR REVISOR
- * Filtra todas las solicitudes con Estado = 'Pendiente' asignadas a un Revisor específico
- * Parámetro: reviewerId (ID del Revisor)
- * Retorna: [ { solicitud_id, estudiante_id, monto, fecha_envio, estado, revisor_nombre } ]
  */
 const PENDING_REQUESTS_BY_REVIEWER_QUERY = `
-  MATCH (s:Solicitud)-[:REVISADA_POR {Fecha_Asignacion: $reviewerAssignDate}]->(r:Revisor)
-  WHERE r.ID = $reviewerId AND s.Estado = 'Pendiente'
+  MATCH (s:Solicitud)-[rev:REVISADA_POR]->(r:Revisor)
+  WHERE r.ID = $reviewerId 
+    AND s.Estado = 'Pendiente'
+
   MATCH (e:Estudiante)-[:ENVIA]->(s)
+
+  WITH e, s, r, rev
+  ORDER BY s.Fecha_Envio ASC
+
   RETURN {
     solicitud_id: s.ID,
     estudiante_id: e.ID,
@@ -166,19 +239,25 @@ const PENDING_REQUESTS_BY_REVIEWER_QUERY = `
     estado: s.Estado,
     revisor_nombre: r.Nombre,
     revisor_id: r.ID,
-    fecha_asignacion: s.REVISADA_POR.Fecha_Asignacion
+    fecha_asignacion: rev.Fecha_Asignacion,
+    decision: rev.Decision
   } AS resultado
-  ORDER BY s.Fecha_Envio ASC
 `;
 
 /**
  * QUERY 5: AGREGACIÓN - ESTUDIANTES POR CUENTA
- * Cuenta cuántos estudiantes DISTINTOS usan cada Cuenta, ordenado de mayor a menor
- * Retorna: [ { cuenta_id, banco, num_estudiantes, estudiantes_ids } ]
  */
 const COUNT_STUDENTS_BY_ACCOUNT_QUERY = `
   MATCH (e:Estudiante)-[:USA_CUENTA]->(c:Cuenta)
-  WITH c, COUNT(DISTINCT e.ID) AS num_estudiantes, COLLECT(DISTINCT e.ID) AS estudiante_ids
+
+  WITH 
+    c,
+    COUNT(DISTINCT e) AS num_estudiantes,
+    COLLECT(DISTINCT e.ID) AS estudiante_ids
+
+  WITH c, num_estudiantes, estudiante_ids
+  ORDER BY num_estudiantes DESC
+
   RETURN {
     cuenta_id: c.ID,
     banco: c.Banco,
@@ -186,35 +265,40 @@ const COUNT_STUDENTS_BY_ACCOUNT_QUERY = `
     terminacion: c.Terminacion,
     numero_estudiantes: num_estudiantes,
     estudiantes_ids: estudiante_ids,
-    es_compartida: CASE WHEN num_estudiantes > 1 THEN true ELSE false END
+    es_compartida: CASE 
+      WHEN num_estudiantes > 1 THEN true 
+      ELSE false 
+    END
   } AS resultado
-  ORDER BY num_estudiantes DESC
 `;
 
 /**
  * QUERY 6: AGREGACIÓN - PROMEDIO DE MONTO POR BECA
- * Calcula el AVG de Monto_Solicitado para cada Beca
- * Retorna: [ { beca_id, nombre_beca, categoria, num_solicitudes, monto_promedio, monto_max, monto_min } ]
  */
 const AVG_AMOUNT_BY_SCHOLARSHIP_QUERY = `
   MATCH (s:Solicitud)-[:APLICA_A]->(b:Beca)
-  WITH b, 
-       COUNT(s) AS num_solicitudes,
-       AVG(s.Monto_Solicitado) AS monto_promedio,
-       MAX(s.Monto_Solicitado) AS monto_maximo,
-       MIN(s.Monto_Solicitado) AS monto_minimo
+
+  WITH 
+    b,
+    COUNT(DISTINCT s) AS num_solicitudes,
+    AVG(s.Monto_Solicitado) AS monto_promedio,
+    MAX(s.Monto_Solicitado) AS monto_maximo,
+    MIN(s.Monto_Solicitado) AS monto_minimo
+
+  WITH b, num_solicitudes, monto_promedio, monto_maximo, monto_minimo
+  ORDER BY num_solicitudes DESC
+
   RETURN {
     beca_id: b.ID,
     nombre_beca: b.Nombre_Beca,
     categoria: b.Categoria,
     monto_maximo_beca: b.Monto_Max,
     numero_solicitudes: num_solicitudes,
-    monto_promedio: ROUND(monto_promedio, 2),
+    monto_promedio: round(monto_promedio * 100) / 100.0,
     monto_maximo_solicitado: monto_maximo,
     monto_minimo_solicitado: monto_minimo,
     renovable: b.Renovable
   } AS resultado
-  ORDER BY num_solicitudes DESC
 `;
 
 // ============================================================================
@@ -226,8 +310,9 @@ module.exports = {
   SHARED_ACCOUNTS_QUERY,
   REUSED_DOCUMENTS_QUERY,
   FRAUD_NETWORK_QUERY,
+  DUPLICATE_APPLICATIONS_QUERY,
 
-  // Filtros y Agregaciones
+  // Filtros y agregaciones
   PENDING_REQUESTS_BY_REVIEWER_QUERY,
   COUNT_STUDENTS_BY_ACCOUNT_QUERY,
   AVG_AMOUNT_BY_SCHOLARSHIP_QUERY,

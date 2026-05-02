@@ -5,13 +5,63 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarDocumentosInvalidos()
   cargarPagosFallidos()
   cargarCuentasStats()
+  cargarCatalogos()
 })
 
-function parseIds(value) {
-  return value
-    .split(',')
-    .map(item => item.trim())
+function getSelectedValues(selectId) {
+  const select = document.getElementById(selectId)
+  if (!select) return []
+  return Array.from(select.selectedOptions)
+    .map(option => option.value)
     .filter(Boolean)
+}
+
+function fillSelect(selectId, items, labelFn, placeholder) {
+  const select = document.getElementById(selectId)
+  if (!select) return
+
+  const options = (placeholder ? [`<option value="">${placeholder}</option>`] : [])
+    .concat(items.map(item => `<option value="${item.ID}">${labelFn(item)}</option>`))
+
+  select.innerHTML = options.join('')
+}
+
+async function cargarCatalogos() {
+  const results = await Promise.allSettled([
+    apiGet('/admin/lista/alertas'),
+    apiGet('/admin/lista/solicitudes'),
+    apiGet('/admin/lista/estudiantes'),
+    apiGet('/admin/lista/dispositivos'),
+    apiGet('/admin/revisores')
+  ])
+
+  const alertas = results[0].status === 'fulfilled' ? results[0].value.data || [] : []
+  const solicitudes = results[1].status === 'fulfilled' ? results[1].value.data || [] : []
+  const estudiantes = results[2].status === 'fulfilled' ? results[2].value.data || [] : []
+  const dispositivos = results[3].status === 'fulfilled' ? results[3].value.data || [] : []
+  const revisores = results[4].status === 'fulfilled' ? results[4].value.data || [] : []
+
+  const alertasResueltas = alertas.filter(alerta => alerta.Resuelta === true || alerta.Resuelta === 'true')
+
+  fillSelect('pendiente-revisor-id', revisores, (r) => `${r.Nombre || 'Revisor'} - ${r.ID}`, 'Selecciona un revisor')
+  fillSelect('nota-revisor-id', revisores, (r) => `${r.Nombre || 'Revisor'} - ${r.ID}`, 'Selecciona un revisor')
+
+  fillSelect('obs-alerta-id', alertas, (a) => `${a.Tipo_Alerta || 'Alerta'} - ${a.ID}`, 'Selecciona una alerta')
+  fillSelect('riesgo-alerta-id', alertas, (a) => `${a.Tipo_Alerta || 'Alerta'} - ${a.ID}`, 'Selecciona una alerta')
+  fillSelect('alerta-eliminar-id', alertas, (a) => `${a.Tipo_Alerta || 'Alerta'} - ${a.ID}`, 'Selecciona una alerta')
+
+  fillSelect('alertas-campo', alertas, (a) => `${a.Tipo_Alerta || 'Alerta'} - ${a.ID}`)
+  fillSelect('estado-alerta-ids', alertas, (a) => `${a.Tipo_Alerta || 'Alerta'} - ${a.ID}`)
+  fillSelect('relaciones-alerta', alertas, (a) => `${a.Tipo_Alerta || 'Alerta'} - ${a.ID}`)
+  fillSelect('alertas-resueltas', alertasResueltas, (a) => `${a.Tipo_Alerta || 'Alerta'} - ${a.ID}`)
+
+  fillSelect('auditar-solicitudes', solicitudes, (s) => `${s.ID} - ${s.Estado || 'Sin estado'}`)
+  fillSelect('auditar-adjuntas', solicitudes, (s) => `${s.ID} - ${s.Estado || 'Sin estado'}`)
+  fillSelect('desauditar-adjuntas', solicitudes, (s) => `${s.ID} - ${s.Estado || 'Sin estado'}`)
+  fillSelect('nota-solicitud-id', solicitudes, (s) => `${s.ID} - ${s.Estado || 'Sin estado'}`, 'Selecciona una solicitud')
+
+  fillSelect('desactivar-estudiantes', estudiantes, (e) => `${e.Nombre_Completo || e.Email || 'Estudiante'} - ${e.ID}`)
+  fillSelect('dispositivo-id', dispositivos, (d) => `${d.Navegador || 'Dispositivo'} - ${d.ID}`, 'Selecciona un dispositivo')
 }
 
 function showMessage(type, text) {
@@ -60,7 +110,7 @@ async function cargarPendientesRevisor() {
   const tbody = document.getElementById('pendientes-revisor-table')
 
   if (!reviewerId) {
-    tbody.innerHTML = '<tr><td colspan="5">Ingresa un ID de revisor.</td></tr>'
+    tbody.innerHTML = '<tr><td colspan="5">Selecciona un revisor.</td></tr>'
     return
   }
 
@@ -184,7 +234,7 @@ async function actualizarNivelRiesgo() {
 }
 
 async function auditarSolicitudes() {
-  const ids = parseIds(document.getElementById('auditar-solicitudes').value)
+  const ids = getSelectedValues('auditar-solicitudes')
   if (!ids.length) return
 
   try {
@@ -196,7 +246,7 @@ async function auditarSolicitudes() {
 }
 
 async function desactivarEstudiantes() {
-  const ids = parseIds(document.getElementById('desactivar-estudiantes').value)
+  const ids = getSelectedValues('desactivar-estudiantes')
   if (!ids.length) return
 
   try {
@@ -220,7 +270,7 @@ async function eliminarIPHash() {
 }
 
 async function eliminarCampoAlertas() {
-  const ids = parseIds(document.getElementById('alertas-campo').value)
+  const ids = getSelectedValues('alertas-campo')
   if (!ids.length) return
 
   try {
@@ -232,7 +282,7 @@ async function eliminarCampoAlertas() {
 }
 
 async function eliminarAlertasResueltas() {
-  const ids = parseIds(document.getElementById('alertas-resueltas').value)
+  const ids = getSelectedValues('alertas-resueltas')
   if (!ids.length) return
 
   try {
@@ -256,7 +306,7 @@ async function eliminarAlerta() {
 }
 
 async function auditarAdjuntas() {
-  const ids = parseIds(document.getElementById('auditar-adjuntas').value)
+  const ids = getSelectedValues('auditar-adjuntas')
   if (!ids.length) return
 
   try {
@@ -268,7 +318,7 @@ async function auditarAdjuntas() {
 }
 
 async function desauditarAdjuntas() {
-  const ids = parseIds(document.getElementById('desauditar-adjuntas').value)
+  const ids = getSelectedValues('desauditar-adjuntas')
   if (!ids.length) return
 
   try {
@@ -280,7 +330,7 @@ async function desauditarAdjuntas() {
 }
 
 async function actualizarEstadoAlertas() {
-  const ids = parseIds(document.getElementById('estado-alerta-ids').value)
+  const ids = getSelectedValues('estado-alerta-ids')
   const estado = document.getElementById('estado-alerta').value.trim()
   if (!ids.length || !estado) return
 
@@ -293,7 +343,7 @@ async function actualizarEstadoAlertas() {
 }
 
 async function eliminarRelacionesAlertas() {
-  const ids = parseIds(document.getElementById('relaciones-alerta').value)
+  const ids = getSelectedValues('relaciones-alerta')
   if (!ids.length) return
 
   try {

@@ -16,8 +16,10 @@
       <h2>Nuevo documento</h2>
       <form id="documento-form" class="grid-2">
         <div>
-          <label>ID solicitud</label>
-          <input class="form-control" id="solicitudId" required>
+          <label>Solicitud</label>
+          <select class="form-control" id="solicitudId" required>
+            <option value="">Selecciona una solicitud</option>
+          </select>
         </div>
         <div>
           <label>Tipo</label>
@@ -32,7 +34,11 @@
           <input class="form-control" id="palabras" placeholder="fraude, beca" required>
         </div>
       </form>
-      <button class="btn btn-primary" onclick="crearDocumento()">Adjuntar documento</button>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="crearDocumento()">Adjuntar documento</button>
+        <button class="btn btn-secondary" onclick="actualizarDocumento()">Actualizar documento</button>
+      </div>
+      <p class="auth-footer">Selecciona un documento en la tabla para editarlo.</p>
     </section>
 
     <section class="section">
@@ -51,10 +57,11 @@
               <th>Tipo</th>
               <th>Valido</th>
               <th>Fecha</th>
+              <th>Accion</th>
             </tr>
           </thead>
           <tbody id="documentos-table">
-            <tr><td colspan="4">Cargando...</td></tr>
+            <tr><td colspan="5">Cargando...</td></tr>
           </tbody>
         </table>
       </div>

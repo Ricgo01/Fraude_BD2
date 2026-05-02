@@ -102,20 +102,68 @@ Esto genera el archivo `uploads/estudiantes_5000.csv` listo para cargar en /admi
 ## Cumplimiento de rubrica
 - Carga CSV y minimo de 5000 nodos (segun dataset cargado).
 - Grafo conexo con estudiantes, solicitudes, documentos, cuentas, dispositivos y alertas.
-- CRUD de nodos (crear becas, revisores, estudiantes via CSV, documentos, solicitudes).
-- CRUD de relaciones (auditar, eliminar relaciones GENERA_ALERTA, notas de revision).
-- Filtros y agregaciones visibles en /admin/agregaciones.
-- 6 consultas Cypher visibles en reportes de fraude y estadisticas.
+- CRUD de nodos (crear becas, revisores, estudiantes via CSV, alertas manuales).
+- CRUD de propiedades (desactivar estudiantes, actualizar riesgo de alerta, agregar observación).
+- CRUD de relaciones (auditar adjuntas, eliminar relaciones GENERA_ALERTA, eliminar nota de revision).
+- Filtros (Estudiantes por promedio debajo del maximo, pagos fallidos, documentos invalidos).
+- Agregaciones (Estudiantes por cuenta bancaria, promedio de monto por beca, alertas por estado).
+- Consultas Cypher complejas para fraude (redes, cuentas compartidas, documentos reutilizados).
 
-## Consultas Cypher visibles (6)
-- /admin/fraude: cuentas compartidas, documentos reutilizados, red de fraude.
-- /admin/agregaciones: pendientes por revisor, estadisticas de cuentas.
-- /admin/becas: estadisticas de montos por beca.
+## Consultas Cypher Destacadas (Rúbrica)
 
-## Consultas por integrante
-- RIC: cuenta compartida, solicitud duplicada
-- FEL: aprobacion sospechosa, red de fraude
-- VIA: documento reutilizado, dispositivo/direccion reutilizada
+### 1. Detección de Cuentas Compartidas (SHARED_ACCOUNT)
+Encuentra estudiantes distintos que depositan o tienen vinculada la misma cuenta bancaria.
+```cypher
+MATCH (e:Estudiante)-[:USA_CUENTA]->(cuenta:Cuenta)
+WITH cuenta, COLLECT(DISTINCT e) AS estudiantes
+WITH cuenta, estudiantes, SIZE(estudiantes) AS num_estudiantes
+WHERE num_estudiantes > 1
+RETURN cuenta.ID, num_estudiantes, estudiantes
+```
+
+### 2. Detección de Documentos Reutilizados (REUSED_DOCUMENT)
+Identifica un mismo hash de documento asociado a solicitudes de diferentes estudiantes.
+```cypher
+MATCH (est:Estudiante)-[:ENVIA]->(sol:Solicitud)-[:ADJUNTA]->(doc:Documento)
+WHERE doc.Hash IS NOT NULL AND trim(doc.Hash) <> ''
+WITH doc.Hash AS hash, COLLECT(DISTINCT est) AS estudiantes
+WHERE SIZE(estudiantes) > 1
+RETURN hash, SIZE(estudiantes) AS num_estudiantes
+```
+
+### 3. Redes de Fraude Complejas (FRAUD_NETWORK)
+Detecta estudiantes que comparten tanto la misma cuenta bancaria como el mismo dispositivo (IP o huella de navegador).
+```cypher
+MATCH (e:Estudiante)-[:USA_CUENTA]->(c:Cuenta)
+MATCH (e)-[:USA_DISPOSITIVO]->(d:Dispositivo)
+WITH c, d, COLLECT(DISTINCT e) AS estudiantes
+WHERE SIZE(estudiantes) > 1
+RETURN c.ID, d.ID, SIZE(estudiantes) AS num_estudiantes
+```
+
+### 4. Agregación: Promedio de Montos por Beca
+Calcula el promedio, máximo y mínimo de los montos solicitados agrupados por Beca.
+```cypher
+MATCH (s:Solicitud)-[:APLICA_A]->(b:Beca)
+RETURN b.Nombre_Beca, COUNT(s) as solicitudes, AVG(s.Monto_Solicitado) as promedio
+```
+
+### 5. Filtro: Estudiantes con Promedios Sospechosos
+Busca estudiantes cuyo promedio sea inferior a un límite específico de la beca, ordenados de forma ascendente.
+```cypher
+MATCH (b:Beca {ID: $becaId})
+MATCH (e:Estudiante)
+WHERE e.Promedio < b.Monto_Max
+RETURN e ORDER BY e.Promedio ASC
+```
+
+### 6. Filtro: Pagos Fallidos en Bucle
+Encuentra transacciones de pago que no fueron exitosas tras múltiples intentos.
+```cypher
+MATCH (p:Pago)
+WHERE p.Exitoso = false AND p.Intentos > 2
+RETURN p ORDER BY p.Intentos DESC
+```
 
 ## Comandos
 - Instalar dependencias: npm install

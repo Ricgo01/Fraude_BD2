@@ -1,6 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAuth('estudiante')) return
+  cargarBecas()
 })
+
+async function cargarBecas() {
+  const select = document.getElementById('becaId')
+  try {
+    const response = await apiGet('/estudiante/becas')
+    const becas = response.data || []
+
+    if (!becas.length) {
+      select.innerHTML = '<option value="">Sin becas disponibles</option>'
+      return
+    }
+
+    select.innerHTML = ['<option value="">Selecciona una beca</option>']
+      .concat(becas.map((beca) => (
+        `<option value="${beca.ID}">${beca.Nombre_Beca || 'Beca'} - ${formatMoney(beca.Monto_Max)}</option>`
+      )))
+      .join('')
+  } catch (error) {
+    select.innerHTML = '<option value="">Error cargando becas</option>'
+  }
+}
 
 async function crearSolicitud() {
   const message = document.getElementById('message')

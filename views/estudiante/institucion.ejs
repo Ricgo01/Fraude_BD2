@@ -59,6 +59,38 @@
 
       <button class="btn btn-primary" onclick="guardarInstitucion()">Guardar institucion</button>
     </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Instituciones registradas</h2>
+          <p>Selecciona una institucion para editarla.</p>
+        </div>
+        <div class="actions">
+          <select class="form-control" id="institucion-select" style="max-width: 280px;">
+            <option value="">Selecciona una institucion</option>
+          </select>
+          <button class="btn btn-secondary" onclick="seleccionarInstitucion()">Cargar</button>
+          <button class="btn btn-primary" onclick="actualizarInstitucion()">Actualizar institucion</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Departamento</th>
+              <th>Publica</th>
+            </tr>
+          </thead>
+          <tbody id="instituciones-table">
+            <tr><td colspan="4">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 

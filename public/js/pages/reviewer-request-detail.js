@@ -16,123 +16,140 @@ async function cargarDetalle() {
         const response = await apiGet(`/revisor/solicitud/${solicitudId}`)
         const data = response.data
 
-        document.getElementById('solicitud-id').textContent = data.solicitud_id
-        document.getElementById('solicitud-estado').innerHTML = statusBadge(data.estado)
-        document.getElementById('solicitud-monto').textContent = formatMoney(data.monto_solicitado)
-        document.getElementById('solicitud-fecha').textContent = data.fecha_envio || '-'
+        document.getElementById('solicitud-id-header').textContent = data.solicitud_id
 
+        // Renderizar Banderas Rojas si hay alertas
+        const banner = document.getElementById('banner-alertas')
+        if (data.alertas && data.alertas.length > 0) {
+            const nivelMaximo = data.alertas.some(a => (a.nivel_riesgo || '').toLowerCase() === 'critico') 
+                ? 'CRÍTICO' : 'ALTO';
+            const resuelta = data.alertas.every(a => a.resuelta)
+            if(!resuelta) {
+                banner.style.display = 'block'
+                banner.innerHTML = `⚠️ ATENCIÓN: Esta solicitud tiene ${data.alertas.length} alertas de fraude activas - Nivel ${nivelMaximo}.`
+            }
+        } else {
+            banner.style.display = 'none'
+        }
+
+        // Datos
         document.getElementById('detalle-estudiante').innerHTML = `
-            <h3>Estudiante</h3>
             <p><strong>Nombre:</strong> ${data.estudiante?.nombre || '-'}<br>
             <strong>Promedio:</strong> ${data.estudiante?.promedio || 0}<br>
-            <strong>Activo:</strong> ${data.estudiante?.activo ? 'Si' : 'No'}</p>
+            <strong>Email:</strong> ${data.estudiante?.email || '-'}</p>
         `
 
         document.getElementById('detalle-beca').innerHTML = `
-            <h3>Beca</h3>
             <p><strong>Nombre:</strong> ${data.beca?.nombre || '-'}<br>
-            <strong>Categoria:</strong> ${data.beca?.categoria || '-'}<br>
-            <strong>Monto max:</strong> ${formatMoney(data.beca?.monto_max)}</p>
+            <strong>Categoría:</strong> ${data.beca?.categoria || '-'}<br>
+            <strong>Monto Máx:</strong> ${formatMoney(data.beca?.monto_max)}</p>
         `
 
-        renderDocumentos(data.documentos || [])
-        renderAlertas(data.alertas || [])
+        document.getElementById('detalle-solicitud').innerHTML = `
+            <p><strong>Monto Solicitado:</strong> ${formatMoney(data.monto_solicitado)}<br>
+            <strong>Estado:</strong> ${statusBadge(data.estado)}<br>
+            <strong>Fecha Envio:</strong> ${data.fecha_envio || '-'}<br>
+            <strong>Motivo:</strong> ${data.motivo_apoyo || '-'}</p>
+        `
+
+        // Documentos con checkboxes
+        const docsContainer = document.getElementById('documentos-container')
+        if (!data.documentos || data.documentos.length === 0) {
+            docsContainer.innerHTML = '<p>No hay documentos adjuntos.</p>'
+        } else {
+            docsContainer.innerHTML = data.documentos.map((doc) => {
+                const checkedValid = doc.es_valido === true ? 'checked' : ''
+                const checkedInvalid = doc.es_valido === false ? 'checked' : ''
+                return `
+                <div style="border: 1px solid #e5e7eb; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                    <strong>${doc.tipo || 'Documento'}</strong> (ID: ${doc.id})
+                    <div style="margin-top: 10px; display: flex; gap: 15px;">
+                        <label><input type="radio" name="doc_${doc.id}" value="valido" ${checkedValid}> Válido</label>
+                        <label><input type="radio" name="doc_${doc.id}" value="invalido" ${checkedInvalid}> Inválido</label>
+                    </div>
+                </div>
+                `
+            }).join('')
+        }
+
+        // Dejar guardado el array de ids para usarlo despues
+        window.documentosActuales = data.documentos || []
+
     } catch (error) {
         message.innerHTML = `<div class="alert alert-error">${error.message}</div>`
     }
 }
 
-function renderDocumentos(documentos) {
-    const tbody = document.getElementById('documentos-table')
+async function marcarDocumentos() {
+    const docs = window.documentosActuales || []
+    let errores = 0
 
-    if (!documentos.length) {
-        tbody.innerHTML = '<tr><td colspan="5">No hay documentos.</td></tr>'
+    for (const doc of docs) {
+        const radios = document.getElementsByName(`doc_${doc.id}`)
+        let valorSeleccionado = null
+        for (const radio of radios) {
+            if (radio.checked) valorSeleccionado = radio.value
+        }
+
+        if (valorSeleccionado) {
+            try {
+                const estadoRevision = valorSeleccionado === 'valido' ? 'aprobado' : 'rechazado'
+                await apiPatch('/revisor/documentos/revisar', {
+                    documentoIds: [doc.id],
+                    Estado_Revision: estadoRevision
+                })
+            } catch (err) {
+                errores++
+                console.error(err)
+            }
+        }
+    }
+
+    if (errores > 0) {
+        mostrarToast('Hubo errores al guardar la revisión de documentos', 'error')
+    } else {
+        mostrarToast('Revisión de documentos guardada', 'success')
+        cargarDetalle()
+    }
+}
+
+async function guardarNotaRevision() {
+    const solicitudId = window.solicitudId || window.location.pathname.split('/').pop()
+    const nota = document.getElementById('nota-veredicto').value.trim()
+
+    if (!nota) {
+        mostrarToast('Escribe una nota primero.', 'error')
         return
     }
 
-    tbody.innerHTML = documentos.map((doc) => {
-        const estado = doc.es_valido === true
-            ? 'aprobado'
-            : doc.es_valido === false
-                ? 'rechazado'
-                : 'pendiente'
-
-        return `
-        <tr>
-            <td>${doc.id || '-'}</td>
-            <td>${doc.tipo || '-'}</td>
-            <td>${doc.es_valido === true ? 'Si' : doc.es_valido === false ? 'No' : '-'}</td>
-            <td>${estado}</td>
-            <td>
-                <button class="btn btn-secondary" onclick="revisarDocumento('${doc.id}', 'aprobado')">Aprobar</button>
-                <button class="btn btn-warning" onclick="revisarDocumento('${doc.id}', 'rechazado')">Rechazar</button>
-                <button class="btn btn-danger" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
-            </td>
-        </tr>
-    `
-    }).join('')
+    try {
+        await apiPatch(`/revisor/solicitud/${solicitudId}/nota`, { Nota: nota })
+        mostrarToast('Nota agregada a la solicitud.', 'success')
+    } catch (error) {
+        mostrarToast(error.message, 'error')
+    }
 }
 
-function renderAlertas(alertas) {
-    const tbody = document.getElementById('alertas-table')
+async function resolverSolicitud(decision) {
+    const solicitudId = window.solicitudId || window.location.pathname.split('/').pop()
+    const nota = document.getElementById('nota-veredicto').value.trim()
 
-    if (!alertas.length) {
-        tbody.innerHTML = '<tr><td colspan="4">No hay alertas.</td></tr>'
+    if (!nota && decision === 'Rechazada') {
+        mostrarToast('Debes agregar una justificación para rechazar.', 'error')
         return
     }
-
-    tbody.innerHTML = alertas.map((alerta) => `
-        <tr>
-            <td>${alerta.id || '-'}</td>
-            <td>${alerta.tipo || '-'}</td>
-            <td>${riskBadge(alerta.nivel_riesgo)}</td>
-            <td>${alerta.resuelta ? 'Si' : 'No'}</td>
-        </tr>
-    `).join('')
-}
-
-async function revisarDocumento(documentoId, estado) {
-    const solicitudId = window.solicitudId || window.location.pathname.split('/').pop()
-    try {
-        await apiPatch('/revisor/documentos/revisar', {
-            documentoIds: [documentoId],
-            Estado_Revision: estado
-        })
-        cargarDetalle()
-    } catch (error) {
-        showInlineError(error.message)
-    }
-}
-
-async function eliminarDocumento(documentoId) {
-    const solicitudId = window.solicitudId || window.location.pathname.split('/').pop()
-    try {
-        await apiDelete(`/revisor/solicitud/${solicitudId}/documento/${documentoId}`)
-        cargarDetalle()
-    } catch (error) {
-        showInlineError(error.message)
-    }
-}
-
-async function resolverSolicitud() {
-    const solicitudId = window.solicitudId || window.location.pathname.split('/').pop()
-    const decision = document.getElementById('decision').value
-    const nota = document.getElementById('nota').value.trim()
-    const message = document.getElementById('message')
 
     try {
         await apiPut(`/revisor/solicitud/${solicitudId}/resolver`, {
             Decision: decision,
-            Nota: nota
+            Nota: nota || decision
         })
-        message.innerHTML = '<div class="alert alert-success">Solicitud actualizada.</div>'
-        cargarDetalle()
+        mostrarToast(`Solicitud ${decision}`, 'success')
+        
+        setTimeout(() => {
+            window.location.href = '/revisor/dashboard'
+        }, 1500)
     } catch (error) {
-        message.innerHTML = `<div class="alert alert-error">${error.message}</div>`
+        mostrarToast(error.message, 'error')
     }
-}
-
-function showInlineError(text) {
-    const message = document.getElementById('message')
-    message.innerHTML = `<div class="alert alert-error">${text}</div>`
 }

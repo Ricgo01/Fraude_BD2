@@ -49,7 +49,7 @@
         <button class="btn btn-secondary" onclick="cargarSolicitudesEstados()">Actualizar</button>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
         <table class="table">
           <thead>
             <tr>
@@ -67,11 +67,13 @@
     <section class="section">
       <h2>Pendientes por revisor</h2>
       <div class="actions">
-        <input class="form-control" id="pendiente-revisor-id" placeholder="ID del revisor" style="max-width: 240px;">
+        <select class="form-control" id="pendiente-revisor-id" style="max-width: 240px;">
+          <option value="">Selecciona un revisor</option>
+        </select>
         <button class="btn btn-secondary" onclick="cargarPendientesRevisor()">Buscar</button>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
         <table class="table">
           <thead>
             <tr>
@@ -83,7 +85,7 @@
             </tr>
           </thead>
           <tbody id="pendientes-revisor-table">
-            <tr><td colspan="5">Ingresa un ID de revisor.</td></tr>
+            <tr><td colspan="5">Selecciona un revisor.</td></tr>
           </tbody>
         </table>
       </div>
@@ -98,7 +100,7 @@
         <button class="btn btn-secondary" onclick="cargarCuentasStats()">Actualizar</button>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
         <table class="table">
           <thead>
             <tr>
@@ -124,7 +126,7 @@
           </div>
           <button class="btn btn-secondary" onclick="cargarDocumentosInvalidos()">Actualizar</button>
         </div>
-        <div class="table-wrapper">
+        <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
           <table class="table">
             <thead>
               <tr>
@@ -148,7 +150,7 @@
           </div>
           <button class="btn btn-secondary" onclick="cargarPagosFallidos()">Actualizar</button>
         </div>
-        <div class="table-wrapper">
+        <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
           <table class="table">
             <thead>
               <tr>
@@ -172,14 +174,18 @@
       <div class="grid-2">
         <div class="form-card">
           <h3>Agregar observacion alerta</h3>
-          <input class="form-control" id="obs-alerta-id" placeholder="ID alerta">
+          <select class="form-control" id="obs-alerta-id">
+            <option value="">Selecciona una alerta</option>
+          </select>
           <input class="form-control" id="obs-alerta-texto" placeholder="Observacion">
           <button class="btn btn-secondary" onclick="agregarObservacion()">Guardar</button>
         </div>
 
         <div class="form-card">
           <h3>Actualizar nivel de riesgo</h3>
-          <input class="form-control" id="riesgo-alerta-id" placeholder="ID alerta">
+          <select class="form-control" id="riesgo-alerta-id">
+            <option value="">Selecciona una alerta</option>
+          </select>
           <select class="form-control" id="riesgo-alerta-nivel">
             <option value="BAJO">BAJO</option>
             <option value="MEDIO">MEDIO</option>
@@ -191,69 +197,85 @@
 
         <div class="form-card">
           <h3>Auditar solicitudes</h3>
-          <input class="form-control" id="auditar-solicitudes" placeholder="IDs separados por coma">
+          <select class="form-control" id="auditar-solicitudes" multiple>
+          </select>
           <button class="btn btn-secondary" onclick="auditarSolicitudes()">Auditar</button>
         </div>
 
         <div class="form-card">
           <h3>Desactivar estudiantes</h3>
-          <input class="form-control" id="desactivar-estudiantes" placeholder="IDs separados por coma">
+          <select class="form-control" id="desactivar-estudiantes" multiple>
+          </select>
           <button class="btn btn-secondary" onclick="desactivarEstudiantes()">Desactivar</button>
         </div>
 
         <div class="form-card">
           <h3>Eliminar IP hash</h3>
-          <input class="form-control" id="dispositivo-id" placeholder="ID dispositivo">
+          <select class="form-control" id="dispositivo-id">
+            <option value="">Selecciona un dispositivo</option>
+          </select>
           <button class="btn btn-secondary" onclick="eliminarIPHash()">Eliminar</button>
         </div>
 
         <div class="form-card">
           <h3>Eliminar campo observacion</h3>
-          <input class="form-control" id="alertas-campo" placeholder="IDs separados por coma">
+          <select class="form-control" id="alertas-campo" multiple>
+          </select>
           <button class="btn btn-secondary" onclick="eliminarCampoAlertas()">Eliminar</button>
         </div>
 
         <div class="form-card">
           <h3>Eliminar alertas resueltas</h3>
-          <input class="form-control" id="alertas-resueltas" placeholder="IDs separados por coma">
+          <select class="form-control" id="alertas-resueltas" multiple>
+          </select>
           <button class="btn btn-danger" onclick="eliminarAlertasResueltas()">Eliminar</button>
         </div>
 
         <div class="form-card">
           <h3>Eliminar alerta por ID</h3>
-          <input class="form-control" id="alerta-eliminar-id" placeholder="ID alerta">
+          <select class="form-control" id="alerta-eliminar-id">
+            <option value="">Selecciona una alerta</option>
+          </select>
           <button class="btn btn-danger" onclick="eliminarAlerta()">Eliminar</button>
         </div>
 
         <div class="form-card">
           <h3>Auditar adjuntas</h3>
-          <input class="form-control" id="auditar-adjuntas" placeholder="IDs solicitud separados por coma">
+          <select class="form-control" id="auditar-adjuntas" multiple>
+          </select>
           <button class="btn btn-secondary" onclick="auditarAdjuntas()">Auditar</button>
         </div>
 
         <div class="form-card">
           <h3>Desauditar adjuntas</h3>
-          <input class="form-control" id="desauditar-adjuntas" placeholder="IDs solicitud separados por coma">
+          <select class="form-control" id="desauditar-adjuntas" multiple>
+          </select>
           <button class="btn btn-secondary" onclick="desauditarAdjuntas()">Eliminar auditado</button>
         </div>
 
         <div class="form-card">
           <h3>Actualizar estado alerta</h3>
-          <input class="form-control" id="estado-alerta-ids" placeholder="IDs alerta separados por coma">
+          <select class="form-control" id="estado-alerta-ids" multiple>
+          </select>
           <input class="form-control" id="estado-alerta" placeholder="Estado alerta">
           <button class="btn btn-secondary" onclick="actualizarEstadoAlertas()">Actualizar</button>
         </div>
 
         <div class="form-card">
           <h3>Eliminar relaciones GENERA_ALERTA</h3>
-          <input class="form-control" id="relaciones-alerta" placeholder="IDs alerta separados por coma">
+          <select class="form-control" id="relaciones-alerta" multiple>
+          </select>
           <button class="btn btn-danger" onclick="eliminarRelacionesAlertas()">Eliminar</button>
         </div>
 
         <div class="form-card">
           <h3>Eliminar nota de revision</h3>
-          <input class="form-control" id="nota-solicitud-id" placeholder="ID solicitud">
-          <input class="form-control" id="nota-revisor-id" placeholder="ID revisor">
+          <select class="form-control" id="nota-solicitud-id">
+            <option value="">Selecciona una solicitud</option>
+          </select>
+          <select class="form-control" id="nota-revisor-id">
+            <option value="">Selecciona un revisor</option>
+          </select>
           <button class="btn btn-danger" onclick="eliminarNotaRevision()">Eliminar</button>
         </div>
       </div>
