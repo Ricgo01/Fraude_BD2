@@ -11,8 +11,9 @@ async function cargarAlertas() {
 
   try {
     message.innerHTML = ''
-    const response = await apiGet('/admin/alertas/activas') // endpoint correcto según admin.routes.js
-    const alertas = response.data || []
+    // Usar /lista/alertas para obtener TODAS, no solo las de nivel alto
+    const response = await apiGet('/admin/lista/alertas')
+    const alertas = (response.data || []).filter(a => !a.Resuelta)
 
     if (alertas.length === 0) {
       tbody.innerHTML = `<tr><td colspan="8">No hay alertas activas.</td></tr>`
@@ -21,17 +22,15 @@ async function cargarAlertas() {
 
     tbody.innerHTML = alertas.map(alerta => `
       <tr>
-        <td>${alerta.id || '-'}</td>
-        <td>${traducirTipoAlerta(alerta.tipo)}</td>
-        <td>${riskBadge(alerta.nivel_riesgo)}</td>
-        <td>${alerta.puntaje_riesgo || 0}</td>
-        <td>${alerta.solicitud_id || '-'}</td>
-        <td>${alerta.solicitud_estado || '-'}</td>
-        <td>${alerta.fecha_creacion || '-'}</td>
+        <td title="${alerta.ID}">${shortId(alerta.ID)}</td>
+        <td>${traducirTipoAlerta(alerta.Tipo_Alerta)}</td>
+        <td>${riskBadge(alerta.Nivel_Riesgo)}</td>
+        <td>${alerta.Puntaje_Riesgo || 0}</td>
+        <td>${alerta.Solicitud_ID || '-'}</td>
+        <td>${alerta.Estado_Alerta || '-'}</td>
+        <td>${formatNeoDate(alerta.Fecha_Creacion)}</td>
         <td>
-          <button class="btn btn-secondary" onclick="abrirModalAlerta('${alerta.id}', '${alerta.tipo}', '${alerta.solicitud_id}', '${alerta.nivel_riesgo}', '${alerta.observacion || ''}')">
-            Gestionar
-          </button>
+          <button class="btn btn-secondary" onclick="abrirModalAlerta('${alerta.ID}', '${alerta.Tipo_Alerta}', '${alerta.Solicitud_ID || ''}', '${alerta.Nivel_Riesgo}', '${alerta.Observacion || ''}')">Gestionar</button>
         </td>
       </tr>
     `).join('')
@@ -103,6 +102,32 @@ async function resolverAlerta() {
   }
 }
 
+async function eliminarTodasAlertas() {
+  const confirmar = window.confirm(
+    '⚠️ Esto eliminará TODAS las alertas del sistema.\n\n' +
+    'Esta acción es para demos académicas.\n\n' +
+    '¿Continuar?'
+  );
+  if (!confirmar) return;
+
+  try {
+    const r = await fetch('/admin/alertas/todas', {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    const data = await r.json();
+
+    if (data.success) {
+      mostrarToast(data.message, 'success');
+      cargarAlertas();
+    } else {
+      mostrarToast(data.message, 'error');
+    }
+  } catch (e) {
+    mostrarToast('Error al eliminar alertas', 'error');
+  }
+}
+
 // === MODAL CREAR ALERTA MANUAL ===
 async function abrirModalCrearAlerta() {
   document.getElementById('modal-crear-alerta').style.display = 'flex'
@@ -153,6 +178,13 @@ async function guardarAlertaManual() {
 
 function traducirTipoAlerta(tipo) {
   const tipos = {
+    cuenta_compartida: 'Cuenta compartida',
+    documento_reutilizado: 'Documento reutilizado',
+    red_de_fraude: 'Red de fraude',
+    dispositivo_repetido: 'Dispositivo repetido',
+    direccion_compartida: 'Dirección compartida',
+    solicitud_duplicada: 'Solicitud duplicada',
+    aval_sospechoso: 'Aval sospechoso',
     SHARED_ACCOUNT: 'Cuenta compartida',
     REUSED_DOCUMENT: 'Documento reutilizado',
     FRAUD_NETWORK: 'Red de fraude'

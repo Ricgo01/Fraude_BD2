@@ -74,8 +74,8 @@ async function cargarAgregaciones() {
   try {
     const response = await apiGet('/admin/agregaciones')
     const data = response.data || {}
-    document.getElementById('max-riesgo').textContent = data.max_puntaje_riesgo || 0
-    document.getElementById('min-promedio').textContent = data.min_promedio_estudiantes || 0
+    document.getElementById('max-riesgo').textContent = formatNumber(data.max_puntaje_riesgo)
+    document.getElementById('min-promedio').textContent = formatNumber(data.min_promedio_estudiantes)
     document.getElementById('sum-depositos').textContent = formatMoney(data.sum_depositos_total || 0)
     document.getElementById('doc-rel').textContent = formatNumber((data.documentos_por_solicitud || []).length)
   } catch (error) {
@@ -128,7 +128,7 @@ async function cargarPendientesRevisor() {
         <td>${item.solicitud_id || '-'}</td>
         <td>${item.estudiante_nombre || '-'}</td>
         <td>${formatMoney(item.monto_solicitado)}</td>
-        <td>${item.fecha_envio || '-'}</td>
+        <td>${formatNeoDate(item.fecha_envio)}</td>
         <td>${item.estado || '-'}</td>
       </tr>
     `).join('')

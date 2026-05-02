@@ -18,14 +18,14 @@ async function cargarEstudiantes() {
     tbody.innerHTML = estudiantes.map(est => `
       <tr>
         <td>
-          <input type="checkbox" class="student-checkbox" value="${est.id}" ${!est.activo ? 'disabled' : ''}>
+          <input type="checkbox" class="student-checkbox" value="${est.ID}" ${!est.Activo ? 'disabled' : ''}>
         </td>
-        <td>${est.id || '-'}</td>
-        <td>${est.nombre || est.nombre_completo || '-'}</td>
+        <td title="${est.ID}">${shortId(est.ID)}</td>
+        <td>${est.Nombre_Completo || '-'}</td>
         <td>${est.Email || '-'}</td>
-        <td>${est.promedio || 0}</td>
+        <td>${est.Promedio || 0}</td>
         <td>
-          ${est.activo 
+          ${est.Activo 
             ? '<span class="badge badge-bajo">Activo</span>' 
             : '<span class="badge badge-alto">Inactivo</span>'}
         </td>

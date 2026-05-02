@@ -313,6 +313,29 @@ exports.eliminarAlerta = async (req, res) => {
     } finally { await session.close() }
 }
 
+exports.eliminarTodasLasAlertas = async (req, res) => {
+  const session = driver.session()
+  try {
+    const result = await session.run(
+      `MATCH (a:Alerta)
+       DETACH DELETE a
+       RETURN count(a) AS total`
+    )
+
+    const total = result.records[0].get('total')
+
+    res.status(200).json({
+      success: true,
+      message: `${total.toNumber ? total.toNumber() : total} alertas eliminadas`,
+      data: { total: total.toNumber ? total.toNumber() : total }
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  } finally {
+    await session.close()
+  }
+}
+
 exports.eliminarAlertasResueltas = async (req, res) => {
     const session = driver.session()
     try {

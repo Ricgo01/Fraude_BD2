@@ -1,0 +1,48 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+    <%- include('../partials/sidebar', { role }) %>
+    <main class="content">
+        <div class="page-header">
+            <h1>Historial de Resoluciones</h1>
+            <p>Solicitudes ya resueltas (Aprobadas o Rechazadas) por ti.</p>
+        </div>
+
+        <div id="message"></div>
+
+        <section class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-size: 0.85em; font-weight: 600; color: #374151;">Estado:</label>
+                    <select class="form-control" id="estado-filter" onchange="cargarHistorial()">
+                        <option value="">Todos</option>
+                        <option value="Aprobada">Aprobada</option>
+                        <option value="Rechazada">Rechazada</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="cargarHistorial()">🔄 Refrescar</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Beca</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Fecha Resolución</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historial-table">
+                        <tr><td colspan="7">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/reviewer-historial.js' }) %>

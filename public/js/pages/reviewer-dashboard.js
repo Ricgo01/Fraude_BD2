@@ -1,76 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth('revisor')) return
-    cargarDisponibles()
-    cargarPendientes()
+    cargarKPIs()
+    cargarUrgentes()
 })
 
-async function cargarDisponibles() {
-    const tbody = document.getElementById('disponibles-table')
+async function cargarKPIs() {
     try {
-        const response = await apiGet('/revisor/solicitudes/disponibles')
-        const items = response.data || []
-        
-        if (!items.length) {
-            tbody.innerHTML = '<tr><td colspan="6">No hay solicitudes disponibles.</td></tr>'
-            return
-        }
+        const [disponiblesRes, misCasosRes, altoRiesgoRes] = await Promise.allSettled([
+            apiGet('/revisor/solicitudes/disponibles'),
+            apiGet('/revisor/solicitudes/pendientes'),
+            apiGet('/revisor/solicitudes/riesgo?Nivel_Riesgo=alto')
+        ])
 
-        tbody.innerHTML = items.map((item) => `
-            <tr>
-                <td>${item.solicitud_id || '-'}</td>
-                <td>${item.estudiante_nombre || '-'}</td>
-                <td>${item.beca_nombre || '-'}</td>
-                <td>${formatMoney(item.monto_solicitado)}</td>
-                <td>${item.fecha_envio || '-'}</td>
-                <td><button class="btn btn-primary" onclick="tomarCaso('${item.solicitud_id}')">Tomar Caso</button></td>
-            </tr>
-        `).join('')
+        if (disponiblesRes.status === 'fulfilled') {
+            document.getElementById('kpi-disponibles').textContent =
+                formatNumber((disponiblesRes.value.data || []).length)
+        }
+        if (misCasosRes.status === 'fulfilled') {
+            document.getElementById('kpi-mis-casos').textContent =
+                formatNumber((misCasosRes.value.data || []).length)
+        }
+        if (altoRiesgoRes.status === 'fulfilled') {
+            document.getElementById('kpi-alto-riesgo').textContent =
+                formatNumber((altoRiesgoRes.value.data || []).length)
+        }
     } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="6">Error cargando solicitudes.</td></tr>'
+        console.error('Error cargando KPIs:', error)
     }
 }
 
-async function cargarPendientes() {
-    const tbody = document.getElementById('pendientes-table')
-    const riesgo = document.getElementById('riesgo-filter').value
-    
+async function cargarUrgentes() {
+    const tbody = document.getElementById('urgentes-table')
     try {
-        let url = '/revisor/solicitudes/pendientes'
-        if (riesgo) {
-            url = `/revisor/solicitudes/riesgo?Nivel_Riesgo=${riesgo}`
-        }
-        
-        const response = await apiGet(url)
-        const items = response.data || []
-        
+        const response = await apiGet('/revisor/solicitudes/riesgo?Nivel_Riesgo=alto')
+        const items = (response.data || []).slice(0, 5)
+
         if (!items.length) {
-            tbody.innerHTML = '<tr><td colspan="7">No tienes solicitudes pendientes.</td></tr>'
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#6b7280;">No tienes casos de alto riesgo. ✅</td></tr>'
             return
         }
 
-        tbody.innerHTML = items.map((item) => `
+        tbody.innerHTML = items.map(item => `
             <tr>
-                <td>${item.solicitud_id || '-'}</td>
+                <td title="${item.solicitud_id}">${shortId(item.solicitud_id)}</td>
                 <td>${item.estudiante_nombre || '-'}</td>
                 <td>${item.beca_nombre || '-'}</td>
                 <td>${formatMoney(item.monto_solicitado)}</td>
                 <td>${statusBadge(item.estado)}</td>
-                <td>${riskBadge(item.riesgo || 'Bajo')}</td>
-                <td><a class="btn btn-secondary" href="/revisor/solicitud/${item.solicitud_id}">Evaluar</a></td>
+                <td>
+                    <a class="btn btn-primary" href="/revisor/solicitud/${item.solicitud_id}" style="background: #ef4444;">⚡ Atender</a>
+                </td>
             </tr>
         `).join('')
     } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="7">Error cargando solicitudes.</td></tr>'
-    }
-}
-
-async function tomarCaso(solicitudId) {
-    try {
-        await apiPatch(`/revisor/solicitud/${solicitudId}/tomar`)
-        mostrarToast('Caso tomado con éxito', 'success')
-        cargarDisponibles()
-        cargarPendientes()
-    } catch (error) {
-        mostrarToast(error.message, 'error')
+        tbody.innerHTML = `<tr><td colspan="6" style="color:#6b7280;">No hay casos de alto riesgo o aún no tienes casos asignados.</td></tr>`
     }
 }

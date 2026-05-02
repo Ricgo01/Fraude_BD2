@@ -3,64 +3,43 @@
 
 <div class="layout">
     <%- include('../partials/sidebar', { role }) %>
-
     <main class="content">
-        <section class="hero-admin">
+        <div class="page-header">
             <h1>Dashboard de Trabajo</h1>
-            <p>Mi Bandeja de Entrada - Linea de Ensamblaje</p>
-        </section>
+            <p>Resumen de tu actividad. Usa el menú lateral para gestionar tus casos.</p>
+        </div>
 
         <div id="message"></div>
 
-        <!-- Seccion A: Solicitudes Disponibles -->
+        <!-- KPI Cards -->
+        <div class="grid-3" style="margin-bottom: 30px;">
+            <div class="card" style="text-align: center; background: linear-gradient(135deg, #1e3a5f, #2563eb); color: white;">
+                <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 5px;">📋 Disponibles</p>
+                <p id="kpi-disponibles" style="font-size: 2.5em; font-weight: 800; margin: 0;">-</p>
+                <p style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">Sin revisor asignado</p>
+            </div>
+            <div class="card" style="text-align: center; background: linear-gradient(135deg, #065f46, #10b981); color: white;">
+                <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 5px;">🎯 Mis Casos</p>
+                <p id="kpi-mis-casos" style="font-size: 2.5em; font-weight: 800; margin: 0;">-</p>
+                <p style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">Pendientes de revisión</p>
+            </div>
+            <div class="card" style="text-align: center; background: linear-gradient(135deg, #7f1d1d, #ef4444); color: white;">
+                <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 5px;">🚨 Alto Riesgo</p>
+                <p id="kpi-alto-riesgo" style="font-size: 2.5em; font-weight: 800; margin: 0;">-</p>
+                <p style="font-size: 0.75em; opacity: 0.7; margin-top: 4px;">Requieren atención urgente</p>
+            </div>
+        </div>
+
+        <!-- Casos urgentes -->
         <section class="section">
-            <div class="actions" style="justify-content: space-between;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h2>Solicitudes Disponibles</h2>
-                    <p>Piscina de solicitudes que nadie ha tomado.</p>
+                    <h2>🔥 Casos Urgentes (Alto Riesgo)</h2>
+                    <p style="color: #6b7280; font-size: 0.9em;">Máximo 5 solicitudes con alertas de nivel alto.</p>
                 </div>
-                <button class="btn btn-secondary" onclick="cargarDisponibles()">Refrescar</button>
+                <a href="/revisor/mis-casos" class="btn btn-secondary">Ver todos mis casos →</a>
             </div>
-
-            <div class="table-wrapper">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Estudiante</th>
-                            <th>Beca</th>
-                            <th>Monto</th>
-                            <th>Fecha</th>
-                            <th>Accion</th>
-                        </tr>
-                    </thead>
-                    <tbody id="disponibles-table">
-                        <tr><td colspan="6">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Seccion B: Mis Casos Pendientes -->
-        <section class="section">
-            <div class="actions" style="justify-content: space-between;">
-                <div>
-                    <h2>Mis Casos Pendientes</h2>
-                    <p>Solicitudes asignadas a mi cola de revision.</p>
-                </div>
-                <div class="actions">
-                    <label>Filtro por Nivel de Riesgo:</label>
-                    <select class="form-control" id="riesgo-filter" onchange="cargarPendientes()">
-                        <option value="">Todos</option>
-                        <option value="bajo">Bajo</option>
-                        <option value="medio">Medio</option>
-                        <option value="alto">Alto</option>
-                    </select>
-                    <button class="btn btn-secondary" onclick="cargarPendientes()">Refrescar</button>
-                </div>
-            </div>
-
-            <div class="table-wrapper">
+            <div class="table-wrapper" style="margin-top: 15px;">
                 <table class="table">
                     <thead>
                         <tr>
@@ -69,14 +48,23 @@
                             <th>Beca</th>
                             <th>Monto</th>
                             <th>Estado</th>
-                            <th>Riesgo</th>
-                            <th>Accion</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
-                    <tbody id="pendientes-table">
-                        <tr><td colspan="7">Cargando...</td></tr>
+                    <tbody id="urgentes-table">
+                        <tr><td colspan="6">Cargando...</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <!-- Acciones rápidas -->
+        <section class="section">
+            <h2>Acciones Rápidas</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                <a href="/revisor/disponibles" class="btn btn-primary">📋 Ver Solicitudes Disponibles</a>
+                <a href="/revisor/mis-casos" class="btn btn-secondary">🎯 Ir a Mis Casos</a>
+                <a href="/revisor/historial" class="btn btn-secondary">📁 Ver Historial</a>
             </div>
         </section>
     </main>

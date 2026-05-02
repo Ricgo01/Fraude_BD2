@@ -1,0 +1,60 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+    <%- include('../partials/sidebar', { role }) %>
+    <main class="content">
+        <div class="page-header">
+            <h1>Mis Casos</h1>
+            <p>Solicitudes asignadas a ti que están pendientes de resolución.</p>
+        </div>
+
+        <div id="message"></div>
+
+        <section class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: 600; color: #374151;">Estado:</label>
+                        <select class="form-control" id="estado-filter" onchange="cargarMisCasos()" style="margin-left: 6px;">
+                            <option value="">Todos</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En revisión">En revisión</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: 600; color: #374151;">Nivel de Riesgo:</label>
+                        <select class="form-control" id="riesgo-filter" onchange="cargarMisCasos()" style="margin-left: 6px;">
+                            <option value="">Todos</option>
+                            <option value="alto">Alto</option>
+                            <option value="medio">Medio</option>
+                            <option value="bajo">Bajo</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="cargarMisCasos()">🔄 Refrescar</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Beca</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Riesgo</th>
+                            <th>Fecha Envío</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mis-casos-table">
+                        <tr><td colspan="8">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/reviewer-mis-casos.js' }) %>

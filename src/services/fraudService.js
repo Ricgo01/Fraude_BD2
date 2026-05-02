@@ -59,6 +59,54 @@ class FraudService {
     }
   }
 
+  async detectSharedDevices() {
+    const session = driver.session();
+    try {
+      console.log('[FraudService] Ejecutando detectSharedDevices...');
+      const result = await session.run(SHARED_DEVICES_QUERY);
+      const data = result.records.map(record => record.get('resultado'));
+      console.log(`[FraudService] Detectados ${data.length} dispositivos compartidos`);
+      return data;
+    } catch (error) {
+      console.error('[FraudService] Error en detectSharedDevices:', error.message);
+      throw new Error(`Error detectando dispositivos compartidos: ${error.message}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  async detectSharedAddresses() {
+    const session = driver.session();
+    try {
+      console.log('[FraudService] Ejecutando detectSharedAddresses...');
+      const result = await session.run(SHARED_ADDRESS_QUERY);
+      const data = result.records.map(record => record.get('resultado'));
+      console.log(`[FraudService] Detectadas ${data.length} direcciones compartidas`);
+      return data;
+    } catch (error) {
+      console.error('[FraudService] Error en detectSharedAddresses:', error.message);
+      throw new Error(`Error detectando direcciones compartidas: ${error.message}`);
+    } finally {
+      await session.close();
+    }
+  }
+
+  async detectSuspiciousReferences() {
+    const session = driver.session();
+    try {
+      console.log('[FraudService] Ejecutando detectSuspiciousReferences...');
+      const result = await session.run(SUSPICIOUS_REFERENCE_QUERY);
+      const data = result.records.map(record => record.get('resultado'));
+      console.log(`[FraudService] Detectados ${data.length} avales sospechosos`);
+      return data;
+    } catch (error) {
+      console.error('[FraudService] Error en detectSuspiciousReferences:', error.message);
+      throw new Error(`Error detectando avales sospechosos: ${error.message}`);
+    } finally {
+      await session.close();
+    }
+  }
+
   /**
    * Detecta redes de fraude: estudiantes que comparten Cuenta Y Dispositivo
    * @returns {Promise<Array>} Array de objetos con redes de fraude

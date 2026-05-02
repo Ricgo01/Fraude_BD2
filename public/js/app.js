@@ -1,26 +1,34 @@
 function formatNumber(value) {
   if (value === undefined || value === null || value === '') return '0'
-  return Number(value).toLocaleString('es-GT')
+  let num = value;
+  if (typeof value === 'object' && value.low !== undefined) num = value.low;
+  return Number(num).toLocaleString('es-GT')
 }
 
 function formatMoney(value) {
   if (value === undefined || value === null || value === '') return 'Q0.00'
+  let num = value;
+  if (typeof value === 'object' && value.low !== undefined) num = value.low;
   return new Intl.NumberFormat('es-GT', {
     style: 'currency',
     currency: 'GTQ',
     minimumFractionDigits: 2
-  }).format(Number(value));
+  }).format(Number(num));
 }
 
 function formatNeoDate(fecha) {
   if (!fecha) return '-';
   if (typeof fecha === 'string') return fecha;
-  if (fecha.year && fecha.month && fecha.day) {
-    const m = String(fecha.month).padStart(2, '0');
-    const d = String(fecha.day).padStart(2, '0');
-    return `${fecha.year}-${m}-${d}`;
+  if (fecha.year !== undefined) {
+    const y = typeof fecha.year === 'object' && fecha.year.low !== undefined ? fecha.year.low : fecha.year;
+    const mRaw = typeof fecha.month === 'object' && fecha.month.low !== undefined ? fecha.month.low : fecha.month;
+    const dRaw = typeof fecha.day === 'object' && fecha.day.low !== undefined ? fecha.day.low : fecha.day;
+    
+    const m = String(mRaw).padStart(2, '0');
+    const d = String(dRaw).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
-  return '-';
+  return JSON.stringify(fecha);
 }
 
 function shortId(id) {
@@ -78,6 +86,13 @@ function statusBadge(status) {
 
 function traducirTipoAlerta(tipo) {
   const tipos = {
+    cuenta_compartida: 'Cuenta compartida',
+    documento_reutilizado: 'Documento reutilizado',
+    red_de_fraude: 'Red de fraude',
+    dispositivo_repetido: 'Dispositivo repetido',
+    direccion_compartida: 'Dirección compartida',
+    solicitud_duplicada: 'Solicitud duplicada',
+    aval_sospechoso: 'Aval sospechoso',
     SHARED_ACCOUNT: 'Cuenta compartida',
     REUSED_DOCUMENT: 'Documento reutilizado',
     FRAUD_NETWORK: 'Red de fraude'

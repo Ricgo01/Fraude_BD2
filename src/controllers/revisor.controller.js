@@ -143,20 +143,58 @@ exports.verSolicitudesPendientes = async (req, res) => {
 
         const result = await session.run(
             `MATCH (s:Solicitud)-[:REVISADA_POR]->(r:Revisor {ID: $revisorId})
-       WHERE s.Estado = 'Pendiente'
+       WHERE s.Estado IN ['Pendiente', 'En revisión']
        MATCH (e:Estudiante)-[:ENVIA]->(s)
        MATCH (s)-[:APLICA_A]->(b:Beca)
+       OPTIONAL MATCH (s)-[:GENERA_ALERTA]->(a:Alerta)
+       WITH s, e, b, max(a.Nivel_Riesgo) AS nivel_riesgo
        RETURN {
          solicitud_id: s.ID,
          fecha_envio: s.Fecha_Envio,
          estado: s.Estado,
          monto_solicitado: s.Monto_Solicitado,
-         motivo: s.Motivo_Apoyo,
-         estudiante_id: e.ID,
+         estudiante_nombre: e.Nombre_Completo,
+         beca_nombre: b.Nombre_Beca,
+         nivel_riesgo: nivel_riesgo
+       } AS resultado
+       ORDER BY s.Fecha_Envio ASC`,
+            { revisorId }
+        )
+
+        const solicitudes = result.records.map(r => r.get('resultado'))
+
+        res.status(200).json({
+            success: true,
+            data: solicitudes
+        })
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally {
+        await session.close()
+    }
+}
+
+exports.verHistorialSolicitudes = async (req, res) => {
+    const session = driver.session()
+    try {
+        const revisorId = req.usuario.id
+
+        const result = await session.run(
+            `MATCH (s:Solicitud)-[rev:REVISADA_POR]->(r:Revisor {ID: $revisorId})
+       WHERE s.Estado IN ['Aprobada', 'Rechazada']
+       MATCH (e:Estudiante)-[:ENVIA]->(s)
+       MATCH (s)-[:APLICA_A]->(b:Beca)
+       RETURN {
+         solicitud_id: s.ID,
+         fecha_envio: s.Fecha_Envio,
+         fecha_resolucion: rev.Fecha_Resolucion,
+         estado: s.Estado,
+         monto_solicitado: s.Monto_Solicitado,
          estudiante_nombre: e.Nombre_Completo,
          beca_nombre: b.Nombre_Beca
        } AS resultado
-       ORDER BY s.Fecha_Envio ASC`,
+       ORDER BY rev.Fecha_Resolucion DESC`,
             { revisorId }
         )
 

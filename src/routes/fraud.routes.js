@@ -31,6 +31,24 @@ router.get('/fraud/reused-documents', fraudController.getReusedDocuments.bind(fr
 router.get('/fraud/network', fraudController.getFraudNetwork.bind(fraudController));
 
 /**
+ * GET /api/reports/fraud/shared-devices
+ * Retorna dispositivos compartidos por múltiples estudiantes
+ */
+router.get('/fraud/shared-devices', fraudController.getSharedDevices.bind(fraudController));
+
+/**
+ * GET /api/reports/fraud/shared-addresses
+ * Retorna direcciones compartidas por múltiples estudiantes
+ */
+router.get('/fraud/shared-addresses', fraudController.getSharedAddresses.bind(fraudController));
+
+/**
+ * GET /api/reports/fraud/suspicious-references
+ * Retorna avales sospechosos usados por múltiples estudiantes
+ */
+router.get('/fraud/suspicious-references', fraudController.getSuspiciousReferences.bind(fraudController));
+
+/**
  * GET /api/reports/pending?reviewerId=:id
  * Filtra solicitudes pendientes para un revisor específico
  */

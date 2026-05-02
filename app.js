@@ -56,6 +56,9 @@ app.get('/estudiante/referencia', renderView('estudiante/referencia', { title: '
 
 app.get('/revisor/solicitudes', renderView('reviewer/requests', { title: 'Solicitudes', role: 'revisor' }))
 app.get('/revisor/dashboard', renderView('reviewer/dashboard', { title: 'Dashboard', role: 'revisor' }))
+app.get('/revisor/disponibles', renderView('reviewer/disponibles', { title: 'Disponibles', role: 'revisor' }))
+app.get('/revisor/mis-casos', renderView('reviewer/mis-casos', { title: 'Mis Casos', role: 'revisor' }))
+app.get('/revisor/historial', renderView('reviewer/historial', { title: 'Historial', role: 'revisor' }))
 app.get('/revisor/solicitud/:solicitudId', renderView('reviewer/request-detail', (req) => ({
     title: 'Detalle de solicitud',
     role: 'revisor',

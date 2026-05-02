@@ -36,7 +36,7 @@ async function cargarDetalle() {
         document.getElementById('detalle-estudiante').innerHTML = `
             <p><strong>Nombre:</strong> ${data.estudiante?.nombre || '-'}<br>
             <strong>Promedio:</strong> ${data.estudiante?.promedio || 0}<br>
-            <strong>Email:</strong> ${data.estudiante?.Email || '-'}</p>
+            <strong>Email:</strong> ${data.estudiante?.email || data.estudiante?.Email || '-'}</p>
         `
 
         document.getElementById('detalle-beca').innerHTML = `
@@ -48,9 +48,30 @@ async function cargarDetalle() {
         document.getElementById('detalle-solicitud').innerHTML = `
             <p><strong>Monto Solicitado:</strong> ${formatMoney(data.monto_solicitado)}<br>
             <strong>Estado:</strong> ${statusBadge(data.estado)}<br>
-            <strong>Fecha Envio:</strong> ${data.fecha_envio || '-'}<br>
-            <strong>Motivo:</strong> ${data.motivo_apoyo || '-'}</p>
+            <strong>Fecha Envio:</strong> ${formatNeoDate(data.fecha_envio)}<br>
+            <strong>Motivo:</strong> ${data.motivo_apoyo || data.motivo || '-'}</p>
         `
+
+        // Sección de veredicto dinámica (Prioridad 3: reglas de modificación)
+        const veredictoDiv = document.getElementById('seccion-veredicto')
+        const yaResuelta = ['Aprobada', 'Rechazada'].includes(data.estado)
+        if (yaResuelta) {
+            veredictoDiv.innerHTML = `
+                <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 15px; text-align: center;">
+                    <p style="font-weight: bold; color: #166534; font-size: 1.1em;">
+                        ${data.estado === 'Aprobada' ? '✅' : '❌'} Esta solicitud ya fue ${data.estado.toLowerCase()}.
+                    </p>
+                    <p style="color: #374151; font-size: 0.9em; margin-top: 5px;">
+                        No se puede modificar la decisión. Aún puedes agregar una nota de post-revisión.
+                    </p>
+                </div>`
+        } else {
+            veredictoDiv.innerHTML = `
+                <div style="display: flex; gap: 10px; flex-direction: column;">
+                    <button class="btn btn-primary" style="background-color: #10b981; font-size: 1.2em; padding: 15px;" onclick="resolverSolicitud('Aprobada')">✓ APROBAR</button>
+                    <button class="btn btn-primary" style="background-color: #ef4444; font-size: 1.2em; padding: 15px;" onclick="resolverSolicitud('Rechazada')">✗ RECHAZAR</button>
+                </div>`
+        }
 
         // Documentos con checkboxes
         const docsContainer = document.getElementById('documentos-container')

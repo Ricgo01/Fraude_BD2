@@ -83,6 +83,69 @@ class FraudController {
     }
   }
 
+  async getSharedDevices(req, res) {
+    try {
+      console.log('[FraudController] GET /api/reports/fraud/shared-devices');
+      const devices = await fraudService.detectSharedDevices();
+
+      res.status(200).json({
+        success: true,
+        message: `${devices.length} dispositivo(s) compartido(s) detectado(s)`,
+        data: devices,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('[FraudController] Error en getSharedDevices:', error.message);
+      res.status(500).json({
+        success: false,
+        message: 'Error detectando dispositivos compartidos',
+        error: error.message,
+      });
+    }
+  }
+
+  async getSharedAddresses(req, res) {
+    try {
+      console.log('[FraudController] GET /api/reports/fraud/shared-addresses');
+      const addresses = await fraudService.detectSharedAddresses();
+
+      res.status(200).json({
+        success: true,
+        message: `${addresses.length} direccion(es) compartida(s) detectada(s)`,
+        data: addresses,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('[FraudController] Error en getSharedAddresses:', error.message);
+      res.status(500).json({
+        success: false,
+        message: 'Error detectando direcciones compartidas',
+        error: error.message,
+      });
+    }
+  }
+
+  async getSuspiciousReferences(req, res) {
+    try {
+      console.log('[FraudController] GET /api/reports/fraud/suspicious-references');
+      const references = await fraudService.detectSuspiciousReferences();
+
+      res.status(200).json({
+        success: true,
+        message: `${references.length} aval(es) sospechoso(s) detectado(s)`,
+        data: references,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('[FraudController] Error en getSuspiciousReferences:', error.message);
+      res.status(500).json({
+        success: false,
+        message: 'Error detectando avales sospechosos',
+        error: error.message,
+      });
+    }
+  }
+
   /**
    * GET /api/reports/pending?reviewerId=:id
    * Filtra solicitudes pendientes asignadas a un revisor específico

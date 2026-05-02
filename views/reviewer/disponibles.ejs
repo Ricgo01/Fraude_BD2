@@ -1,0 +1,40 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+    <%- include('../partials/sidebar', { role }) %>
+    <main class="content">
+        <div class="page-header">
+            <h1>Solicitudes Disponibles</h1>
+            <p>Piscina de solicitudes pendientes sin revisor asignado. Toma un caso para comenzar la revisión.</p>
+        </div>
+
+        <div id="message"></div>
+
+        <section class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <p style="color: #6b7280; font-size: 0.9em;">Haz clic en "Tomar Caso" para asignarte la solicitud.</p>
+                <button class="btn btn-secondary" onclick="cargarDisponibles()">🔄 Refrescar</button>
+            </div>
+            <div class="table-wrapper" style="margin-top: 15px;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID Solicitud</th>
+                            <th>Estudiante</th>
+                            <th>Beca</th>
+                            <th>Monto</th>
+                            <th>Fecha Envío</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="disponibles-table">
+                        <tr><td colspan="6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/reviewer-disponibles.js' }) %>

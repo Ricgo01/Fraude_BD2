@@ -27,7 +27,7 @@
             <select class="form-control" id="obs-alerta-id">
               <option value="">Selecciona una alerta</option>
             </select>
-            <input class="form-control" id="obs-alerta-texto" placeholder="Observacion">
+            <textarea class="form-control" id="obs-alerta-texto" rows="4" placeholder="Escribe la observación o nota sobre esta alerta..."></textarea>
             <button class="btn btn-secondary" onclick="agregarObservacion()">Guardar</button>
           </div>
 
@@ -37,10 +37,9 @@
               <option value="">Selecciona una alerta</option>
             </select>
             <select class="form-control" id="riesgo-alerta-nivel">
-              <option value="BAJO">BAJO</option>
-              <option value="MEDIO">MEDIO</option>
-              <option value="ALTO">ALTO</option>
-              <option value="CRITICO">CRITICO</option>
+              <option value="bajo">bajo</option>
+              <option value="medio">medio</option>
+              <option value="alto">alto</option>
             </select>
             <button class="btn btn-secondary" onclick="actualizarNivelRiesgo()">Actualizar</button>
           </div>
@@ -55,16 +54,14 @@
 
           <div class="form-card">
             <h3>Eliminar alertas resueltas</h3>
-            <select class="form-control" id="alertas-resueltas" multiple>
-            </select>
-            <button class="btn btn-danger" onclick="eliminarAlertasResueltasConfirm()">Eliminar</button>
+            <div id="alertas-resueltas-list" class="checkbox-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+            <button class="btn btn-danger" onclick="eliminarAlertasResueltasConfirm()">Eliminar seleccionadas</button>
           </div>
 
           <div class="form-card">
             <h3>Eliminar relación GENERA_ALERTA</h3>
-            <select class="form-control" id="relaciones-alerta" multiple>
-            </select>
-            <button class="btn btn-danger" onclick="eliminarRelacionesAlertasConfirm()">Eliminar</button>
+            <div id="relaciones-alerta-list" class="checkbox-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+            <button class="btn btn-danger" onclick="eliminarRelacionesAlertasConfirm()">Eliminar seleccionadas</button>
           </div>
         </div>
       </div>
@@ -111,8 +108,8 @@
         <div class="grid-2">
           <div class="form-card">
             <h3>Desactivar estudiantes (masivo)</h3>
-            <select class="form-control" id="desactivar-estudiantes" multiple>
-            </select>
+            <input type="text" class="form-control" id="filtro-estudiantes-admin" placeholder="Buscar por nombre..." onkeyup="filtrarEstudiantesAdmin()" style="margin-bottom: 10px;">
+            <div id="desactivar-estudiantes-list" class="checkbox-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
             <button class="btn btn-secondary" onclick="desactivarEstudiantesConfirm()">Desactivar</button>
           </div>
 
@@ -131,17 +128,20 @@
         <div class="grid-2">
           <div class="form-card">
             <h3>Actualizar estado de alertas</h3>
-            <select class="form-control" id="estado-alerta-ids" multiple>
+            <div id="estado-alerta-ids-list" class="checkbox-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+            <select class="form-control" id="estado-alerta">
+              <option value="">Selecciona un estado</option>
+              <option value="activa">activa</option>
+              <option value="en_revision">en_revision</option>
+              <option value="resuelta">resuelta</option>
             </select>
-            <input class="form-control" id="estado-alerta" placeholder="Estado alerta">
             <button class="btn btn-secondary" onclick="actualizarEstadoAlertas()">Actualizar</button>
           </div>
 
           <div class="form-card">
             <h3>Eliminar campo observación</h3>
-            <select class="form-control" id="alertas-campo" multiple>
-            </select>
-            <button class="btn btn-danger" onclick="eliminarCampoAlertasConfirm()">Eliminar</button>
+            <div id="alertas-campo-list" class="checkbox-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+            <button class="btn btn-danger" onclick="eliminarCampoAlertasConfirm()">Eliminar seleccionadas</button>
           </div>
         </div>
       </div>

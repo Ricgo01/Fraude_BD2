@@ -14,7 +14,7 @@ async function cargarBecasSelect() {
       select.innerHTML = '<option value="">Sin becas</option>'
       return
     }
-    select.innerHTML = '<option value="">Selecciona una beca</option>' + becas.map(b => `<option value="${b.id}">${b.nombre} (${b.id})</option>`).join('')
+    select.innerHTML = '<option value="">Seleccionar una beca</option>' + becas.map(b => `<option value="${b.ID}">${b.Nombre_Beca || 'Beca'} (${shortId(b.ID)})</option>`).join('')
   } catch (error) {
     select.innerHTML = '<option value="">Error cargando</option>'
   }
@@ -24,7 +24,7 @@ async function cargarDashboard() {
   const message = document.getElementById('message')
 
   const results = await Promise.allSettled([
-    apiGet('/api/alerts/stats'),
+    apiGet('/api/reports/alerts/stats'),
     apiGet('/api/reports/accounts/stats')
   ])
 
@@ -76,9 +76,9 @@ async function cargarPromediosBajos() {
 
     tbody.innerHTML = items.map(item => `
       <tr>
-        <td>${item.id || '-'}</td>
-        <td>${item.nombre || '-'}</td>
-        <td style="color: #ef4444; font-weight: bold;">${item.promedio || 0}</td>
+        <td>${item.ID || '-'}</td>
+        <td>${item.Nombre_Completo || '-'}</td>
+        <td style="color: #ef4444; font-weight: bold;">${item.Promedio || 0}</td>
       </tr>
     `).join('')
   } catch (error) {
@@ -101,9 +101,9 @@ async function cargarPagosFallidos() {
 
     tbody.innerHTML = items.map(item => `
       <tr>
-        <td>${item.ID || item.estudiante_id || '-'}</td>
-        <td>${item.nombre || '-'}</td>
-        <td style="color: #ef4444; font-weight: bold;">${item.Intentos || 0}</td>
+        <td title="${item.ID}">${shortId(item.ID)}</td>
+        <td>${formatMoney(item.Monto)}</td>
+        <td style="color: #ef4444; font-weight: bold;">${formatNumber(item.Intentos)}</td>
       </tr>
     `).join('')
   } catch (error) {

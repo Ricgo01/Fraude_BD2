@@ -143,7 +143,7 @@ async function cargarAlertasPendientes() {
         <td>${riskBadge(alerta.nivel_riesgo)}</td>
         <td>${alerta.puntaje_riesgo || 0}</td>
         <td><a href="/admin/alertas">${alerta.solicitud_id || '-'}</a></td>
-        <td>${alerta.fecha_creacion || '-'}</td>
+        <td>${formatNeoDate(alerta.fecha_creacion)}</td>
       </tr>
     `).join('')
   } catch (error) {

@@ -9,6 +9,7 @@ router.use(verificarToken, soloRevisor)
 router.put('/solicitud/:solicitudId/resolver', controller.resolverSolicitud)
 router.get('/solicitudes/pendientes', controller.verSolicitudesPendientes)
 router.get('/solicitudes/pendientes/count', controller.contarSolicitudesPendientes)
+router.get('/solicitudes/historial', controller.verHistorialSolicitudes)
 router.get('/solicitudes/riesgo', controller.verSolicitudesPorRiesgo)
 router.get('/solicitud/:solicitudId', controller.verDetalleSolicitud)
 router.delete('/solicitud/:solicitudId/motivo', controller.eliminarMotivoSolicitud)
@@ -21,8 +22,5 @@ router.delete('/solicitud/:solicitudId/documento/:documentoId', controller.elimi
 
 // ─── Relaciones ────────────────────────────────────────────────
 router.patch('/solicitud/:solicitudId/nota', controller.agregarNotaRevision)
-
-router.get('/solicitudes/disponibles', controller.verSolicitudesDisponibles)
-router.patch('/solicitud/:solicitudId/tomar', controller.tomarSolicitud)
 
 module.exports = router

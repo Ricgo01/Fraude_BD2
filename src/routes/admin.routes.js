@@ -37,6 +37,7 @@ router.get('/documentos/invalidos', controller.filtrarDocumentosInvalidos)
 router.get('/pagos/fallidos', controller.filtrarPagosFallidos)
 
 // ─── Eliminar nodos ────────────────────────────────────────────
+router.delete('/alertas/todas', controller.eliminarTodasLasAlertas)
 router.delete('/alerta/:alertaId', controller.eliminarAlerta)
 router.delete('/alertas', controller.eliminarAlertasResueltas)
 
