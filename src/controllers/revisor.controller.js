@@ -184,7 +184,19 @@ exports.verDetalleSolicitud = async (req, res) => {
        MATCH (e:Estudiante)-[:ENVIA]->(s)
        MATCH (s)-[:APLICA_A]->(b:Beca)
        OPTIONAL MATCH (s)-[:ADJUNTA]->(d:Documento)
+       WITH s, e, b, collect(DISTINCT {
+         id: d.ID,
+         tipo: d.Tipo,
+         es_valido: d.Es_Valido,
+         fecha_carga: d.Fecha_Carga
+       }) AS documentos_raw
        OPTIONAL MATCH (s)-[:GENERA_ALERTA]->(a:Alerta)
+       WITH s, e, b, documentos_raw, collect(DISTINCT {
+         id: a.ID,
+         tipo: a.Tipo_Alerta,
+         nivel_riesgo: a.Nivel_Riesgo,
+         resuelta: a.Resuelta
+       }) AS alertas_raw
        RETURN {
          solicitud_id: s.ID,
          fecha_envio: s.Fecha_Envio,
@@ -204,18 +216,8 @@ exports.verDetalleSolicitud = async (req, res) => {
            categoria: b.Categoria,
            monto_max: b.Monto_Max
          },
-         documentos: collect(DISTINCT {
-           id: d.ID,
-           tipo: d.Tipo,
-           es_valido: d.Es_Valido,
-           fecha_carga: d.Fecha_Carga
-         }),
-         alertas: collect(DISTINCT {
-           id: a.ID,
-           tipo: a.Tipo_Alerta,
-           nivel_riesgo: a.Nivel_Riesgo,
-           resuelta: a.Resuelta
-         })
+         documentos: [doc IN documentos_raw WHERE doc.id IS NOT NULL],
+         alertas: [al IN alertas_raw WHERE al.id IS NOT NULL]
        } AS resultado`,
             { solicitudId }
         )
