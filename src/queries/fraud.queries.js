@@ -301,6 +301,153 @@ const AVG_AMOUNT_BY_SCHOLARSHIP_QUERY = `
   } AS resultado
 `;
 
+/**
+ * QUERY: DISPOSITIVO REPETIDO
+ * Detecta dispositivos usados por 2+ estudiantes distintos
+ */
+const SHARED_DEVICES_QUERY = `
+  MATCH (e:Estudiante)-[:USA_DISPOSITIVO]->(d:Dispositivo)
+  WITH d, COLLECT(DISTINCT e) AS estudiantes
+  WITH d, estudiantes, SIZE(estudiantes) AS num_estudiantes
+  WHERE num_estudiantes > 1
+
+  OPTIONAL MATCH (e:Estudiante)-[:USA_DISPOSITIVO]->(d)
+  WHERE e IN estudiantes
+  OPTIONAL MATCH (e)-[:ENVIA]->(s:Solicitud)
+
+  WITH 
+    d,
+    estudiantes,
+    num_estudiantes,
+    COLLECT(DISTINCT {
+      id: s.ID,
+      fecha_envio: s.Fecha_Envio,
+      estado: s.Estado,
+      monto: s.Monto_Solicitado,
+      estudiante_id: e.ID
+    }) AS detalles_solicitudes
+
+  WITH d, estudiantes, num_estudiantes, detalles_solicitudes
+  ORDER BY num_estudiantes DESC
+
+  RETURN {
+    dispositivo_id: d.ID,
+    navegador: d.Navegador,
+    sistema_operativo: d.Sistema_Operativo,
+    ip_hash: d.IP_Hash,
+    numero_estudiantes: num_estudiantes,
+    estudiantes: [
+      est IN estudiantes | {
+        id: est.ID,
+        nombre: est.Nombre_Completo,
+        promedio: est.Promedio,
+        activo: est.Activo
+      }
+    ],
+    solicitudes: detalles_solicitudes,
+    riesgo: 'MEDIO'
+  } AS resultado
+`;
+
+/**
+ * QUERY: DIRECCIÓN COMPARTIDA
+ * Detecta direcciones usadas por 2+ estudiantes distintos
+ */
+const SHARED_ADDRESS_QUERY = `
+  MATCH (e:Estudiante)-[:VIVE_EN]->(d:Direccion)
+  WITH d, COLLECT(DISTINCT e) AS estudiantes
+  WITH d, estudiantes, SIZE(estudiantes) AS num_estudiantes
+  WHERE num_estudiantes > 1
+
+  OPTIONAL MATCH (e:Estudiante)-[:VIVE_EN]->(d)
+  WHERE e IN estudiantes
+  OPTIONAL MATCH (e)-[:ENVIA]->(s:Solicitud)
+
+  WITH 
+    d,
+    estudiantes,
+    num_estudiantes,
+    COLLECT(DISTINCT {
+      id: s.ID,
+      fecha_envio: s.Fecha_Envio,
+      estado: s.Estado,
+      monto: s.Monto_Solicitado,
+      estudiante_id: e.ID
+    }) AS detalles_solicitudes
+
+  WITH d, estudiantes, num_estudiantes, detalles_solicitudes
+  ORDER BY num_estudiantes DESC
+
+  RETURN {
+    direccion_id: d.ID,
+    direccion: d.Direccion,
+    municipio: d.Municipio,
+    departamento: d.Departamento,
+    verificada: d.Verificada,
+    numero_estudiantes: num_estudiantes,
+    estudiantes: [
+      est IN estudiantes | {
+        id: est.ID,
+        nombre: est.Nombre_Completo,
+        promedio: est.Promedio,
+        activo: est.Activo
+      }
+    ],
+    solicitudes: detalles_solicitudes,
+    riesgo: 'MEDIO'
+  } AS resultado
+`;
+
+/**
+ * QUERY: AVAL SOSPECHOSO
+ * Detecta referencias avalando 3+ estudiantes con Veces_Usada > 10
+ */
+const SUSPICIOUS_REFERENCE_QUERY = `
+  MATCH (e:Estudiante)-[:AVALADO_POR]->(r:Referencia)
+  WITH r, COLLECT(DISTINCT e) AS estudiantes
+  WITH r, estudiantes, SIZE(estudiantes) AS num_estudiantes
+  WHERE num_estudiantes >= 3 AND r.Veces_Usada > 10
+
+  OPTIONAL MATCH (e:Estudiante)-[:AVALADO_POR]->(r)
+  WHERE e IN estudiantes
+  OPTIONAL MATCH (e)-[:ENVIA]->(s:Solicitud)
+
+  WITH 
+    r,
+    estudiantes,
+    num_estudiantes,
+    COLLECT(DISTINCT {
+      id: s.ID,
+      fecha_envio: s.Fecha_Envio,
+      estado: s.Estado,
+      monto: s.Monto_Solicitado,
+      estudiante_id: e.ID
+    }) AS detalles_solicitudes
+
+  WITH r, estudiantes, num_estudiantes, detalles_solicitudes
+  ORDER BY num_estudiantes DESC
+
+  RETURN {
+    referencia_id: r.ID,
+    nombre: r.Nombre,
+    telefono: r.Telefono,
+    relacion: r.Relacion,
+    verificada: r.Verificada,
+    veces_usada: r.Veces_Usada,
+    numero_estudiantes: num_estudiantes,
+    estudiantes: [
+      est IN estudiantes | {
+        id: est.ID,
+        nombre: est.Nombre_Completo,
+        promedio: est.Promedio,
+        activo: est.Activo
+      }
+    ],
+    solicitudes: detalles_solicitudes,
+    riesgo: 'BAJO'
+  } AS resultado
+`;
+
 // ============================================================================
 // EXPORTAR TODAS LAS QUERIES
 // ============================================================================
@@ -311,9 +458,12 @@ module.exports = {
   REUSED_DOCUMENTS_QUERY,
   FRAUD_NETWORK_QUERY,
   DUPLICATE_APPLICATIONS_QUERY,
+  SHARED_DEVICES_QUERY,
+  SHARED_ADDRESS_QUERY,
+  SUSPICIOUS_REFERENCE_QUERY,
 
   // Filtros y agregaciones
   PENDING_REQUESTS_BY_REVIEWER_QUERY,
   COUNT_STUDENTS_BY_ACCOUNT_QUERY,
   AVG_AMOUNT_BY_SCHOLARSHIP_QUERY,
-};
+}

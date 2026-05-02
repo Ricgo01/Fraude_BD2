@@ -1,0 +1,167 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Acciones Admin</h1>
+      <p>Gestión de propiedades, eliminaciones y operaciones especiales.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('tab-alertas')">Alertas</button>
+        <button class="tab-btn" onclick="openTab('tab-solicitudes')">Solicitudes</button>
+        <button class="tab-btn" onclick="openTab('tab-estudiantes')">Estudiantes y Dispositivos</button>
+        <button class="tab-btn" onclick="openTab('tab-estados')">Estados</button>
+      </div>
+
+      <!-- TAB ALERTAS -->
+      <div id="tab-alertas" class="tab-content" style="display: block; margin-top: 20px;">
+        <div class="grid-2">
+          <div class="form-card">
+            <h3>Agregar observación alerta</h3>
+            <select class="form-control" id="obs-alerta-id">
+              <option value="">Selecciona una alerta</option>
+            </select>
+            <input class="form-control" id="obs-alerta-texto" placeholder="Observacion">
+            <button class="btn btn-secondary" onclick="agregarObservacion()">Guardar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Actualizar nivel de riesgo</h3>
+            <select class="form-control" id="riesgo-alerta-id">
+              <option value="">Selecciona una alerta</option>
+            </select>
+            <select class="form-control" id="riesgo-alerta-nivel">
+              <option value="BAJO">BAJO</option>
+              <option value="MEDIO">MEDIO</option>
+              <option value="ALTO">ALTO</option>
+              <option value="CRITICO">CRITICO</option>
+            </select>
+            <button class="btn btn-secondary" onclick="actualizarNivelRiesgo()">Actualizar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Eliminar alerta por ID</h3>
+            <select class="form-control" id="alerta-eliminar-id">
+              <option value="">Selecciona una alerta</option>
+            </select>
+            <button class="btn btn-danger" onclick="eliminarAlertaConfirm()">Eliminar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Eliminar alertas resueltas</h3>
+            <select class="form-control" id="alertas-resueltas" multiple>
+            </select>
+            <button class="btn btn-danger" onclick="eliminarAlertasResueltasConfirm()">Eliminar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Eliminar relación GENERA_ALERTA</h3>
+            <select class="form-control" id="relaciones-alerta" multiple>
+            </select>
+            <button class="btn btn-danger" onclick="eliminarRelacionesAlertasConfirm()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB SOLICITUDES -->
+      <div id="tab-solicitudes" class="tab-content" style="display: none; margin-top: 20px;">
+        <div class="grid-2">
+          <div class="form-card">
+            <h3>Auditar solicitudes (masivo)</h3>
+            <select class="form-control" id="auditar-solicitudes" multiple>
+            </select>
+            <button class="btn btn-secondary" onclick="auditarSolicitudes()">Auditar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Auditar adjuntas</h3>
+            <select class="form-control" id="auditar-adjuntas" multiple>
+            </select>
+            <button class="btn btn-secondary" onclick="auditarAdjuntas()">Auditar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Desauditar adjuntas</h3>
+            <select class="form-control" id="desauditar-adjuntas" multiple>
+            </select>
+            <button class="btn btn-secondary" onclick="desauditarAdjuntas()">Eliminar auditado</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Eliminar nota de revisión</h3>
+            <select class="form-control" id="nota-solicitud-id">
+              <option value="">Selecciona una solicitud</option>
+            </select>
+            <select class="form-control" id="nota-revisor-id">
+              <option value="">Selecciona un revisor</option>
+            </select>
+            <button class="btn btn-danger" onclick="eliminarNotaRevisionConfirm()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB ESTUDIANTES Y DISPOSITIVOS -->
+      <div id="tab-estudiantes" class="tab-content" style="display: none; margin-top: 20px;">
+        <div class="grid-2">
+          <div class="form-card">
+            <h3>Desactivar estudiantes (masivo)</h3>
+            <select class="form-control" id="desactivar-estudiantes" multiple>
+            </select>
+            <button class="btn btn-secondary" onclick="desactivarEstudiantesConfirm()">Desactivar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Eliminar IP hash de dispositivo</h3>
+            <select class="form-control" id="dispositivo-id">
+              <option value="">Selecciona un dispositivo</option>
+            </select>
+            <button class="btn btn-danger" onclick="eliminarIPHashConfirm()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB ESTADOS -->
+      <div id="tab-estados" class="tab-content" style="display: none; margin-top: 20px;">
+        <div class="grid-2">
+          <div class="form-card">
+            <h3>Actualizar estado de alertas</h3>
+            <select class="form-control" id="estado-alerta-ids" multiple>
+            </select>
+            <input class="form-control" id="estado-alerta" placeholder="Estado alerta">
+            <button class="btn btn-secondary" onclick="actualizarEstadoAlertas()">Actualizar</button>
+          </div>
+
+          <div class="form-card">
+            <h3>Eliminar campo observación</h3>
+            <select class="form-control" id="alertas-campo" multiple>
+            </select>
+            <button class="btn btn-danger" onclick="eliminarCampoAlertasConfirm()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<style>
+.tabs { display: flex; gap: 10px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+.tab-btn { background: none; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; color: #6B7280; }
+.tab-btn.active { color: #3B82F6; border-bottom: 2px solid #3B82F6; }
+</style>
+
+<script>
+function openTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).style.display = 'block';
+  event.target.classList.add('active');
+}
+</script>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-acciones-admin.js' }) %>

@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarCuentasCompartidas()
   cargarDocumentosReutilizados()
   cargarRedFraude()
+  cargarDispositivosCompartidos()
+  cargarDireccionesCompartidas()
+  cargarAvalesSospechosos()
 })
 
 async function cargarCuentasCompartidas() {
@@ -111,6 +114,9 @@ async function ejecutarDeteccion() {
     cargarCuentasCompartidas()
     cargarDocumentosReutilizados()
     cargarRedFraude()
+    cargarDispositivosCompartidos()
+    cargarDireccionesCompartidas()
+    cargarAvalesSospechosos()
     cargarAlertasPendientes()
   } catch (error) {
     message.innerHTML = `
@@ -143,4 +149,61 @@ async function cargarAlertasPendientes() {
   } catch (error) {
     tbody.innerHTML = '<tr><td colspan="6">Error cargando inbox de alertas.</td></tr>'
   }
+}
+
+async function cargarDispositivosCompartidos() {
+  const tbody = document.getElementById('shared-devices-table')
+  try {
+    const response = await apiGet('/api/reports/fraud/shared-devices')
+    const items = response.data || []
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="6">No hay dispositivos compartidos.</td></tr>'; return }
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td>${item.dispositivo_id || '-'}</td>
+        <td>${item.navegador || '-'}</td>
+        <td>${item.sistema_operativo || '-'}</td>
+        <td><ul style="margin:0;padding-left:20px;font-size:0.9em;">${(item.estudiantes||[]).map(e=>`<li>${e.nombre||e.id}</li>`).join('')}</ul></td>
+        <td>${formatNumber(item.solicitudes ? item.solicitudes.length : 0)}</td>
+        <td>${riskBadge(item.riesgo || 'MEDIO')}</td>
+      </tr>
+    `).join('')
+  } catch(error) { tbody.innerHTML = '<tr><td colspan="6">Error cargando.</td></tr>' }
+}
+
+async function cargarDireccionesCompartidas() {
+  const tbody = document.getElementById('shared-addresses-table')
+  try {
+    const response = await apiGet('/api/reports/fraud/shared-addresses')
+    const items = response.data || []
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="6">No hay direcciones compartidas.</td></tr>'; return }
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td>${item.direccion_id || '-'}</td>
+        <td>${item.direccion || item.calle_avenida || '-'}</td>
+        <td>${item.municipio || '-'}</td>
+        <td>${item.departamento || '-'}</td>
+        <td><ul style="margin:0;padding-left:20px;font-size:0.9em;">${(item.estudiantes||[]).map(e=>`<li>${e.nombre||e.id}</li>`).join('')}</ul></td>
+        <td>${riskBadge(item.riesgo || 'MEDIO')}</td>
+      </tr>
+    `).join('')
+  } catch(error) { tbody.innerHTML = '<tr><td colspan="6">Error cargando.</td></tr>' }
+}
+
+async function cargarAvalesSospechosos() {
+  const tbody = document.getElementById('suspicious-references-table')
+  try {
+    const response = await apiGet('/api/reports/fraud/suspicious-references')
+    const items = response.data || []
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="6">No hay avales sospechosos.</td></tr>'; return }
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td>${item.referencia_id || '-'}</td>
+        <td>${item.nombre || '-'}</td>
+        <td>${item.telefono || '-'}</td>
+        <td>${item.veces_usada || 0}</td>
+        <td><ul style="margin:0;padding-left:20px;font-size:0.9em;">${(item.estudiantes||[]).map(e=>`<li>${e.nombre||e.id}</li>`).join('')}</ul></td>
+        <td>${riskBadge(item.riesgo || 'BAJO')}</td>
+      </tr>
+    `).join('')
+  } catch(error) { tbody.innerHTML = '<tr><td colspan="6">Error cargando.</td></tr>' }
 }

@@ -1,0 +1,52 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Estudiantes</h1>
+      <p>Gestión de estudiantes registrados en el sistema.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between; flex-wrap: wrap;">
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="filtro-nombre" class="form-control" placeholder="Buscar por nombre..." oninput="filtrarTabla()">
+          <select id="filtro-activo" class="form-control" onchange="filtrarTabla()">
+            <option value="">Todos (Activos/Inactivos)</option>
+            <option value="true">Activos</option>
+            <option value="false">Inactivos</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="cargarEstudiantes()">Actualizar</button>
+          <button class="btn btn-danger" onclick="desactivarSeleccionados()">Desactivar seleccionados</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper" style="margin-top: 20px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Promedio</th>
+              <th>Estado</th>
+              <th>Fecha Registro</th>
+            </tr>
+          </thead>
+          <tbody id="estudiantes-table">
+            <tr><td colspan="7">Cargando estudiantes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-estudiantes.js' }) %>

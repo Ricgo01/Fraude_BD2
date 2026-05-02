@@ -1,117 +1,84 @@
 /**
  * FRAUDE_BD2 - Alert Service
- * Crea nodos Alerta:Automáticas en Neo4j y los conecta a Solicitudes
- * Implementa reglas automáticas de alerta cuando se detecta fraude
+ * Crea nodos Alerta:Automatica y :Manual en Neo4j y los conecta a Solicitudes
  */
 
 const driver = require('./neo4j.service');
-const { v4: uuidv4 } = require('crypto').randomUUID || (() => require('uuid').v4());
+
+const TIPOS_ALERTA_AUTOMATICA = {
+  // ALTO RIESGO
+  'red_de_fraude': { nivel: 'alto', puntaje: 9.0 },
+  'cuenta_compartida': { nivel: 'alto', puntaje: 8.5 },
+  'documento_reutilizado': { nivel: 'alto', puntaje: 8.0 },
+  // MEDIO RIESGO
+  'dispositivo_repetido': { nivel: 'medio', puntaje: 5.5 },
+  'direccion_compartida': { nivel: 'medio', puntaje: 5.0 },
+  'solicitud_duplicada': { nivel: 'medio', puntaje: 4.5 },
+  // BAJO RIESGO
+  'aval_sospechoso': { nivel: 'bajo', puntaje: 3.5 }
+};
 
 class AlertService {
-  /**
-   * Calcula el nivel de riesgo basado en el puntaje
-   * @param {number} puntaje - Puntaje de riesgo (0-100)
-   * @returns {string} Nivel: 'BAJO', 'MEDIO', 'ALTO', 'CRITICO'
-   */
-  calcularNivelRiesgo(puntaje) {
-    if (puntaje >= 80) return 'CRITICO';
-    if (puntaje >= 60) return 'ALTO';
-    if (puntaje >= 40) return 'MEDIO';
-    return 'BAJO';
-  }
-
-  /**
-   * Genera un UUID simple (compatible si uuid no está instalado)
-   * @returns {string} UUID v4
-   */
   generarID() {
     return `alerta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
-   * Crea un nodo Alerta:Automáticas en Neo4j y lo conecta a Solicitudes
-   * @param {string} tipoAlerta - Tipo: 'SHARED_ACCOUNT', 'REUSED_DOCUMENT', 'FRAUD_NETWORK'
-   * @param {Array<string>} solicitudIDs - Array de IDs de Solicitudes involucradas
-   * @param {number} puntajeRiesgo - Puntaje de riesgo (0-100)
-   * @param {Object} metadatos - Información adicional del fraude
-   * @returns {Promise<Object>} Objeto con información de la alerta creada
+   * Crea un nodo Alerta:Automatica en Neo4j y lo conecta a las solicitudes involucradas.
+   * El nivel de riesgo y puntaje se asignan automáticamente según el tipo de alerta.
+   *
+   * @param {string} tipoAlerta - Tipo de alerta del catálogo TIPOS_ALERTA_AUTOMATICA
+   * @param {Array<string>} solicitudIDs - IDs de las solicitudes involucradas
+   * @param {Object} metadatos - Información adicional del caso (cuenta_id, hash, etc.)
+   * @param {string} dedupKey - Clave única para evitar duplicar alertas del mismo caso
+   * @returns {Promise<Object>} Información de la alerta creada
    */
-  async createAutomaticAlert(tipoAlerta, solicitudIDs, puntajeRiesgo, metadatos = {}, dedupKey = '') {
+  async createAutomaticAlert(tipoAlerta, solicitudIDs, metadatos = {}, dedupKey = null) {
     const session = driver.session();
     try {
-      console.log(`[AlertService] Creando alerta tipo '${tipoAlerta}' para ${solicitudIDs.length} solicitud(es)...`);
-
-      if (!dedupKey) {
-        throw new Error('dedupKey es requerido para evitar alertas duplicadas');
+      const config = TIPOS_ALERTA_AUTOMATICA[tipoAlerta];
+      if (!config) {
+        throw new Error(`Tipo de alerta desconocido: ${tipoAlerta}`);
       }
 
       const alertID = this.generarID();
-      const nivelRiesgo = this.calcularNivelRiesgo(puntajeRiesgo);
-      const fechaCreacion = new Date().toISOString();
 
-      // Query que crea la alerta Y la conecta a las solicitudes en una transacción
-      const crearAlertaQuery = `
-        MERGE (a:Alerta:Automáticas {
-          Tipo_Alerta: $tipoAlerta,
-          Regla_Disparada: $tipoAlerta,
-          Dedup_Key: $dedupKey,
-          Resuelta: false
-        })
+      const query = `
+        MERGE (a:Riesgo:Alerta:Automatica { Tipo_Alerta: $tipoAlerta, DedupKey: $dedupKey })
         ON CREATE SET
           a.ID = $alertID,
           a.Nivel_Riesgo = $nivelRiesgo,
           a.Puntaje_Riesgo = $puntajeRiesgo,
-          a.Fecha_Creacion = $fechaCreacion,
+          a.Resuelta = false,
+          a.Fecha_Creacion = date(),
           a.Metadatos = $metadatos
-        WITH a, (a.Fecha_Creacion = $fechaCreacion) AS creada
-        UNWIND $solicitudIDs AS solicitud_id
-        MATCH (s:Solicitud {ID: solicitud_id})
-        MERGE (a)-[r:GENERA_ALERTA]->(s)
+        WITH a
+        UNWIND $solicitudIDs AS sid
+        MATCH (s:Solicitud {ID: sid})
+        MERGE (s)-[r:GENERA_ALERTA]->(a)
         ON CREATE SET
-          r.Fecha_Deteccion = $fechaCreacion,
+          r.Fecha_Deteccion = date(),
           r.Regla_Disparada = $tipoAlerta,
-          r.Estado_Alerta = 'GENERADA'
-        RETURN a.ID AS alerta_id, COUNT(s) AS solicitudes_conectadas, creada
+          r.Estado_Alerta = 'activa'
+        RETURN a.ID AS alerta_id, COUNT(s) AS solicitudes_conectadas
       `;
 
-      const result = await session.run(crearAlertaQuery, {
+      const result = await session.run(query, {
         alertID,
         tipoAlerta,
-        nivelRiesgo,
-        puntajeRiesgo: parseInt(puntajeRiesgo),
-        fechaCreacion,
+        nivelRiesgo: config.nivel,
+        puntajeRiesgo: config.puntaje,
         metadatos: JSON.stringify(metadatos),
         solicitudIDs,
-        dedupKey,
+        dedupKey: dedupKey || tipoAlerta
       });
 
-      if (result.records.length === 0) {
-        throw new Error('No se creó la alerta o no se encontraron las solicitudes');
-      }
-
-      const record = result.records[0];
-      const alertaID = record.get('alerta_id');
-      const solicitudesConectadas = record.get('solicitudes_conectadas');
-      const creada = record.get('creada');
-
-      console.log(
-        `[AlertService] ✓ Alerta creada (${alertaID}) con nivel ${nivelRiesgo}. ` +
-        `Conectada a ${solicitudesConectadas} solicitud(es).`
-      );
-
       return {
-        alerta_id: alertaID,
+        alerta_id: result.records[0]?.get('alerta_id'),
         tipo_alerta: tipoAlerta,
-        nivel_riesgo: nivelRiesgo,
-        puntaje_riesgo: puntajeRiesgo,
-        solicitudes_conectadas: solicitudesConectadas,
-        fecha_creacion: fechaCreacion,
-        metadatos,
-        creada: Boolean(creada),
+        nivel_riesgo: config.nivel,
+        puntaje_riesgo: config.puntaje
       };
-    } catch (error) {
-      console.error(`[AlertService] Error creando alerta: ${error.message}`);
-      throw new Error(`Error creando alerta automática: ${error.message}`);
     } finally {
       await session.close();
     }
@@ -119,15 +86,12 @@ class AlertService {
 
   /**
    * Obtiene todas las alertas automáticas sin resolver
-   * @returns {Promise<Array>} Array de alertas sin resolver
    */
   async obtenerAlertasPendientes() {
     const session = driver.session();
     try {
-      console.log('[AlertService] Obteniendo alertas pendientes...');
-
       const query = `
-        MATCH (a:Alerta:Automáticas {Resuelta: false})-[:GENERA_ALERTA]->(s:Solicitud)
+        MATCH (a:Alerta {Resuelta: false})-[:GENERA_ALERTA]-(s:Solicitud)
         RETURN {
           alerta_id: a.ID,
           tipo_alerta: a.Tipo_Alerta,
@@ -139,14 +103,8 @@ class AlertService {
         } AS resultado
         ORDER BY a.Fecha_Creacion DESC
       `;
-
       const result = await session.run(query);
-      const data = result.records.map(record => record.get('resultado'));
-      console.log(`[AlertService] Encontradas ${data.length} alertas pendientes`);
-      return data;
-    } catch (error) {
-      console.error('[AlertService] Error obteniendo alertas pendientes:', error.message);
-      throw new Error(`Error obteniendo alertas: ${error.message}`);
+      return result.records.map(record => record.get('resultado'));
     } finally {
       await session.close();
     }
@@ -154,37 +112,22 @@ class AlertService {
 
   /**
    * Marca una alerta como resuelta
-   * @param {string} alertID - ID de la alerta
-   * @param {string} resolucion - Descripción de la resolución
-   * @returns {Promise<boolean>} True si se actualizó correctamente
    */
   async marcarAlertaResuelta(alertID, resolucion = 'Revisada por administrador') {
     const session = driver.session();
     try {
-      console.log(`[AlertService] Marcando alerta ${alertID} como resuelta...`);
-
       const query = `
-        MATCH (a:Alerta:Automáticas {ID: $alertID})
+        MATCH (a:Alerta {ID: $alertID})
         SET a.Resuelta = true,
-            a.Fecha_Resolucion = datetime(),
+            a.Fecha_Resolucion = date(),
             a.Descripcion_Resolucion = $resolucion
         RETURN a.ID AS alerta_id
       `;
-
-      const result = await session.run(query, {
-        alertID,
-        resolucion,
-      });
-
+      const result = await session.run(query, { alertID, resolucion });
       if (result.records.length === 0) {
         throw new Error(`Alerta ${alertID} no encontrada`);
       }
-
-      console.log(`[AlertService] ✓ Alerta marcada como resuelta`);
       return true;
-    } catch (error) {
-      console.error(`[AlertService] Error marcando alerta resuelta: ${error.message}`);
-      throw new Error(`Error resolviendo alerta: ${error.message}`);
     } finally {
       await session.close();
     }
@@ -192,23 +135,12 @@ class AlertService {
 
   /**
    * Obtiene alertas de un tipo específico
-   * @param {string} tipoAlerta - Tipo de alerta ('SHARED_ACCOUNT', 'REUSED_DOCUMENT', 'FRAUD_NETWORK')
-   * @param {boolean} soloNoResueltas - Si true, retorna solo alertas sin resolver
-   * @returns {Promise<Array>} Array de alertas del tipo especificado
    */
   async obtenerAlertasPorTipo(tipoAlerta, soloNoResueltas = true) {
     const session = driver.session();
     try {
-      console.log(`[AlertService] Obteniendo alertas tipo '${tipoAlerta}'...`);
-
-      let query = `
-        MATCH (a:Alerta:Automáticas {Tipo_Alerta: $tipoAlerta})
-      `;
-
-      if (soloNoResueltas) {
-        query += ` WHERE a.Resuelta = false`;
-      }
-
+      let query = `MATCH (a:Alerta {Tipo_Alerta: $tipoAlerta})`;
+      if (soloNoResueltas) query += ` WHERE a.Resuelta = false`;
       query += `
         RETURN {
           alerta_id: a.ID,
@@ -220,14 +152,8 @@ class AlertService {
         } AS resultado
         ORDER BY a.Puntaje_Riesgo DESC
       `;
-
       const result = await session.run(query, { tipoAlerta });
-      const data = result.records.map(record => record.get('resultado'));
-      console.log(`[AlertService] Encontradas ${data.length} alertas tipo '${tipoAlerta}'`);
-      return data;
-    } catch (error) {
-      console.error('[AlertService] Error obteniendo alertas por tipo:', error.message);
-      throw new Error(`Error obteniendo alertas por tipo: ${error.message}`);
+      return result.records.map(record => record.get('resultado'));
     } finally {
       await session.close();
     }
@@ -235,35 +161,35 @@ class AlertService {
 
   /**
    * Obtiene estadísticas de alertas
-   * @returns {Promise<Object>} Objeto con estadísticas de alertas
    */
   async obtenerEstadisticasAlertas() {
     const session = driver.session();
     try {
-      console.log('[AlertService] Obteniendo estadísticas de alertas...');
-
       const query = `
-        MATCH (a:Alerta:Automáticas)
+        MATCH (a:Alerta)
         RETURN {
           total_alertas: COUNT(a),
           alertas_resueltas: COUNT(CASE WHEN a.Resuelta = true THEN 1 END),
           alertas_pendientes: COUNT(CASE WHEN a.Resuelta = false THEN 1 END),
           por_tipo: {
-            shared_account: COUNT(CASE WHEN a.Tipo_Alerta = 'SHARED_ACCOUNT' THEN 1 END),
-            reused_document: COUNT(CASE WHEN a.Tipo_Alerta = 'REUSED_DOCUMENT' THEN 1 END),
-            fraud_network: COUNT(CASE WHEN a.Tipo_Alerta = 'FRAUD_NETWORK' THEN 1 END)
+            cuenta_compartida:     COUNT(CASE WHEN a.Tipo_Alerta = 'cuenta_compartida'     THEN 1 END),
+            documento_reutilizado: COUNT(CASE WHEN a.Tipo_Alerta = 'documento_reutilizado' THEN 1 END),
+            red_de_fraude:         COUNT(CASE WHEN a.Tipo_Alerta = 'red_de_fraude'         THEN 1 END),
+            dispositivo_repetido:  COUNT(CASE WHEN a.Tipo_Alerta = 'dispositivo_repetido'  THEN 1 END),
+            direccion_compartida:  COUNT(CASE WHEN a.Tipo_Alerta = 'direccion_compartida'  THEN 1 END),
+            solicitud_duplicada:   COUNT(CASE WHEN a.Tipo_Alerta = 'solicitud_duplicada'   THEN 1 END),
+            aval_sospechoso:       COUNT(CASE WHEN a.Tipo_Alerta = 'aval_sospechoso'       THEN 1 END)
           },
-          riesgo_promedio: ROUND(AVG(a.Puntaje_Riesgo), 2)
+          por_nivel: {
+            alto:  COUNT(CASE WHEN a.Nivel_Riesgo = 'alto'  THEN 1 END),
+            medio: COUNT(CASE WHEN a.Nivel_Riesgo = 'medio' THEN 1 END),
+            bajo:  COUNT(CASE WHEN a.Nivel_Riesgo = 'bajo'  THEN 1 END)
+          },
+          riesgo_promedio: round(AVG(a.Puntaje_Riesgo) * 100) / 100.0
         } AS stats
       `;
-
       const result = await session.run(query);
-      const stats = result.records[0].get('stats');
-      console.log('[AlertService] ✓ Estadísticas obtenidas');
-      return stats;
-    } catch (error) {
-      console.error('[AlertService] Error obteniendo estadísticas:', error.message);
-      throw new Error(`Error obteniendo estadísticas: ${error.message}`);
+      return result.records[0].get('stats');
     } finally {
       await session.close();
     }

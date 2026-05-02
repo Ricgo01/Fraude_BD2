@@ -21,7 +21,11 @@
 
         <div>
           <label>Rol interno</label>
-          <input class="form-control" id="revisorRol" placeholder="Analista" required>
+          <select class="form-control" id="revisorRol">
+            <option value="junior">junior</option>
+            <option value="senior">senior</option>
+            <option value="coordinador">coordinador</option>
+          </select>
         </div>
 
         <div>
@@ -35,8 +39,14 @@
         </div>
 
         <div>
-          <label>Especialidades (separadas por coma)</label>
-          <input class="form-control" id="revisorEspecialidades" placeholder="Fraude, Pagos">
+          <label>Especialidades</label>
+          <div id="revisorEspecialidades" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
+            <label><input type="checkbox" value="becas"> becas</label>
+            <label><input type="checkbox" value="fraude"> fraude</label>
+            <label><input type="checkbox" value="academico"> academico</label>
+            <label><input type="checkbox" value="financiero"> financiero</label>
+            <label><input type="checkbox" value="legal"> legal</label>
+          </div>
         </div>
       </form>
       <button class="btn btn-primary" onclick="crearRevisor()">Crear revisor</button>

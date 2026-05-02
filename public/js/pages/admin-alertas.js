@@ -104,8 +104,18 @@ async function resolverAlerta() {
 }
 
 // === MODAL CREAR ALERTA MANUAL ===
-function abrirModalCrearAlerta() {
+async function abrirModalCrearAlerta() {
   document.getElementById('modal-crear-alerta').style.display = 'flex'
+  const select = document.getElementById('nueva-alerta-solicitud')
+  select.innerHTML = '<option value="">Cargando solicitudes...</option>'
+  try {
+    const response = await apiGet('/admin/solicitudes')
+    const items = response.data || []
+    select.innerHTML = '<option value="">Selecciona una solicitud</option>' + 
+      items.map(s => `<option value="${s.ID}">${(s.ID || '').substring(0,8)}... - ${s.Estudiante_Nombre || s.Estudiante || 'Estudiante'} - ${s.Estado || 'Sin estado'}</option>`).join('')
+  } catch (error) {
+    select.innerHTML = '<option value="">Error cargando solicitudes</option>'
+  }
 }
 
 function cerrarModalCrearAlerta() {
@@ -118,6 +128,8 @@ async function guardarAlertaManual() {
   const riesgo = document.getElementById('nueva-alerta-riesgo').value
   const observacion = document.getElementById('nueva-alerta-obs').value.trim()
 
+  const puntaje = document.getElementById('nueva-alerta-puntaje').value
+
   if (!solicitudId || !tipo) {
     mostrarToast('Solicitud ID y Tipo son obligatorios', 'error')
     return
@@ -128,6 +140,7 @@ async function guardarAlertaManual() {
       Solicitud_ID: solicitudId,
       Tipo_Alerta: tipo,
       Nivel_Riesgo: riesgo,
+      Puntaje_Riesgo: parseFloat(puntaje),
       Observaciones: observacion
     })
     mostrarToast('Alerta creada correctamente', 'success')

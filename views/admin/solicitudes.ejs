@@ -1,0 +1,67 @@
+<%- include('../partials/header', { title }) %>
+<%- include('../partials/navbar', { title, role }) %>
+
+<div class="layout">
+  <%- include('../partials/sidebar', { role }) %>
+  <main class="content">
+    <div class="page-header">
+      <h1>Solicitudes</h1>
+      <p>Listado y auditoría de todas las solicitudes.</p>
+    </div>
+
+    <div id="message"></div>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between; flex-wrap: wrap;">
+        <div style="display: flex; gap: 10px;">
+          <select id="filtro-estado" class="form-control" onchange="filtrarTabla()">
+            <option value="">Todos</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En revisión">En revisión</option>
+            <option value="Aprobada">Aprobada</option>
+            <option value="Rechazada">Rechazada</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="cargarSolicitudes()">Actualizar</button>
+          <button class="btn btn-primary" onclick="auditarSeleccionadas()">Auditar seleccionadas</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper" style="margin-top: 20px;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="check-all-sol" onchange="toggleAllSol(this)"></th>
+              <th>ID Corto</th>
+              <th>Estudiante</th>
+              <th>Beca</th>
+              <th>Monto</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody id="solicitudes-table">
+            <tr><td colspan="8">Cargando solicitudes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Modal Detalle Solicitud -->
+    <div id="modal-detalle-solicitud" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+      <div class="modal-content" style="background: white; padding: 30px; border-radius: 8px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="margin: 0;">Detalle Solicitud <span id="modal-sol-id"></span></h2>
+          <button style="background: none; border: none; font-size: 1.5em; cursor: pointer;" onclick="cerrarModalDetalle()">&times;</button>
+        </div>
+        <div id="modal-sol-content">
+          <p>Cargando detalles...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer', { pageScript: '/js/pages/admin-solicitudes.js' }) %>

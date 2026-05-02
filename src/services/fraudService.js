@@ -9,6 +9,10 @@ const {
   SHARED_ACCOUNTS_QUERY,
   REUSED_DOCUMENTS_QUERY,
   FRAUD_NETWORK_QUERY,
+  SHARED_DEVICES_QUERY,
+  SHARED_ADDRESS_QUERY,
+  SUSPICIOUS_REFERENCE_QUERY,
+  DUPLICATE_APPLICATIONS_QUERY,
   PENDING_REQUESTS_BY_REVIEWER_QUERY,
   COUNT_STUDENTS_BY_ACCOUNT_QUERY,
   AVG_AMOUNT_BY_SCHOLARSHIP_QUERY,
@@ -84,7 +88,7 @@ class FraudService {
     const session = driver.session();
     try {
       console.log(`[FraudService] Ejecutando filterPendingRequests para revisor ${reviewerId}...`);
-      
+
       // Query modificada sin parámetro de fecha (asumimos que REVISADA_POR existe)
       const query = `
         MATCH (s:Solicitud)-[:REVISADA_POR]->(r:Revisor)
@@ -102,7 +106,7 @@ class FraudService {
         } AS resultado
         ORDER BY s.Fecha_Envio ASC
       `;
-      
+
       const result = await session.run(query, { reviewerId });
       const data = result.records.map(record => record.get('resultado'));
       console.log(`[FraudService] Encontradas ${data.length} solicitudes pendientes para revisor ${reviewerId}`);
@@ -162,107 +166,120 @@ class FraudService {
    * @returns {Promise<Object>} Resumen de fraudes detectados y alertas creadas
    */
   async detectFraudsAndCreateAlerts(alertService) {
+    console.log('[FraudService] Iniciando detección integral de fraudes...');
+
+    const results = {
+      sharedAccounts: [],
+      reusedDocuments: [],
+      fraudNetwork: [],
+      sharedDevices: [],
+      sharedAddresses: [],
+      suspiciousReferences: [],
+      duplicateApplications: [],
+      alertsCreated: 0,
+      timestamp: new Date().toISOString(),
+    };
+
+    // ALTO RIESGO
     try {
-      console.log('[FraudService] Iniciando detección integral de fraudes...');
-      
-      const results = {
-        sharedAccounts: [],
-        reusedDocuments: [],
-        fraudNetwork: [],
-        alertsCreated: 0,
-        timestamp: new Date().toISOString(),
-      };
-
-      // 1. Detectar cuentas compartidas
-      try {
-        console.log('[FraudService] Paso 1: Detectando cuentas compartidas...');
-        results.sharedAccounts = await this.detectSharedAccounts();
-        
-        // Crear alertas para cada cuenta compartida
-        for (const fraudCase of results.sharedAccounts) {
-          await alertService.createAutomaticAlert(
-            'SHARED_ACCOUNT',
-            fraudCase.solicitudes.map(s => s.id),
-            70, // Puntaje de riesgo para cuentas compartidas
-            {
-              cuenta_id: fraudCase.cuenta_id,
-              banco: fraudCase.banco,
-              num_estudiantes: fraudCase.numero_estudiantes,
-            },
-            fraudCase.cuenta_id // dedupKey
-          );
-          results.alertsCreated++;
-        }
-      } catch (err) {
-        console.error('[FraudService] Error en detección de cuentas compartidas:', err.message);
+      results.sharedAccounts = await this.detectSharedAccounts();
+      for (const f of results.sharedAccounts) {
+        await alertService.createAutomaticAlert(
+          'cuenta_compartida',
+          f.solicitudes.map(s => s.id).filter(Boolean),
+          { cuenta_id: f.cuenta_id, banco: f.banco, num_estudiantes: f.numero_estudiantes },
+          f.cuenta_id
+        );
+        results.alertsCreated++;
       }
+    } catch (err) { console.error('[FraudService] Error cuentas:', err.message); }
 
-      // 2. Detectar documentos reutilizados
-      try {
-        console.log('[FraudService] Paso 2: Detectando documentos reutilizados...');
-        results.reusedDocuments = await this.detectReusedDocuments();
-        
-        // Crear alertas para cada documento reutilizado
-        for (const fraudCase of results.reusedDocuments) {
-          await alertService.createAutomaticAlert(
-            'REUSED_DOCUMENT',
-            fraudCase.solicitudes.map(s => s.id),
-            80, // Puntaje de riesgo para documentos reutilizados
-            {
-              hash: fraudCase.hash,
-              num_estudiantes: fraudCase.numero_estudiantes,
-              tipo_documento: fraudCase.documentos[0]?.tipo,
-            },
-            fraudCase.hash // dedupKey
-          );
-          results.alertsCreated++;
-        }
-      } catch (err) {
-        console.error('[FraudService] Error en detección de documentos reutilizados:', err.message);
-      }
-
-      // 3. Detectar redes de fraude
-      try {
-        console.log('[FraudService] Paso 3: Detectando redes de fraude...');
-        results.fraudNetwork = await this.detectFraudNetwork();
-        
-        // Crear alertas para cada red de fraude
-        for (const fraudCase of results.fraudNetwork) {
-          await alertService.createAutomaticAlert(
-            'FRAUD_NETWORK',
-            fraudCase.solicitudes.map(s => s.id),
-            90, // Puntaje de riesgo para redes de fraude (máximo)
-            {
-              cuenta_id: fraudCase.cuenta_id,
-              dispositivo_id: fraudCase.dispositivo_id,
-              num_estudiantes: fraudCase.numero_estudiantes,
-            },
-            `${fraudCase.cuenta_id}_${fraudCase.dispositivo_id}` // dedupKey
-          );
-          results.alertsCreated++;
-        }
-      } catch (err) {
-        console.error('[FraudService] Error en detección de red de fraude:', err.message);
-      }
-
-      console.log(`[FraudService] Detección completada: ${results.alertsCreated} alertas creadas`);
-      return results;
-    } catch (error) {
-      console.error('[FraudService] Error crítico en detectFraudsAndCreateAlerts:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Cierra la conexión del driver Neo4j (se llama al shut down de la app)
-   */
-  async close() {
     try {
-      await driver.close();
-      console.log('[FraudService] Driver Neo4j cerrado correctamente');
-    } catch (error) {
-      console.error('[FraudService] Error cerrando driver:', error.message);
-    }
+      results.reusedDocuments = await this.detectReusedDocuments();
+      for (const f of results.reusedDocuments) {
+        await alertService.createAutomaticAlert(
+          'documento_reutilizado',
+          f.solicitudes.map(s => s.id).filter(Boolean),
+          { hash: f.hash, num_estudiantes: f.numero_estudiantes },
+          f.hash
+        );
+        results.alertsCreated++;
+      }
+    } catch (err) { console.error('[FraudService] Error documentos:', err.message); }
+
+    try {
+      results.fraudNetwork = await this.detectFraudNetwork();
+      for (const f of results.fraudNetwork) {
+        await alertService.createAutomaticAlert(
+          'red_de_fraude',
+          f.solicitudes.map(s => s.id).filter(Boolean),
+          { cuenta_id: f.cuenta_id, dispositivo_id: f.dispositivo_id, num_estudiantes: f.numero_estudiantes },
+          `${f.cuenta_id}_${f.dispositivo_id}`
+        );
+        results.alertsCreated++;
+      }
+    } catch (err) { console.error('[FraudService] Error red:', err.message); }
+
+    // MEDIO RIESGO
+    try {
+      results.sharedDevices = await this.detectSharedDevices();
+      for (const f of results.sharedDevices) {
+        await alertService.createAutomaticAlert(
+          'dispositivo_repetido',
+          f.solicitudes.map(s => s.id).filter(Boolean),
+          { dispositivo_id: f.dispositivo_id, num_estudiantes: f.numero_estudiantes },
+          f.dispositivo_id
+        );
+        results.alertsCreated++;
+      }
+    } catch (err) { console.error('[FraudService] Error dispositivos:', err.message); }
+
+    try {
+      results.sharedAddresses = await this.detectSharedAddresses();
+      for (const f of results.sharedAddresses) {
+        await alertService.createAutomaticAlert(
+          'direccion_compartida',
+          f.solicitudes.map(s => s.id).filter(Boolean),
+          { direccion_id: f.direccion_id, num_estudiantes: f.numero_estudiantes },
+          f.direccion_id
+        );
+        results.alertsCreated++;
+      }
+    } catch (err) { console.error('[FraudService] Error direcciones:', err.message); }
+
+    try {
+      const session = driver.session();
+      const result = await session.run(DUPLICATE_APPLICATIONS_QUERY);
+      results.duplicateApplications = result.records.map(r => r.get('resultado'));
+      await session.close();
+
+      for (const f of results.duplicateApplications) {
+        await alertService.createAutomaticAlert(
+          'solicitud_duplicada',
+          f.solicitudes.map(s => s.id).filter(Boolean),
+          { estudiante_id: f.estudiante.id, beca_id: f.beca.id, total: f.total_solicitudes },
+          `${f.estudiante.id}_${f.beca.id}`
+        );
+        results.alertsCreated++;
+      }
+    } catch (err) { console.error('[FraudService] Error duplicadas:', err.message); }
+
+    // BAJO RIESGO
+    try {
+      results.suspiciousReferences = await this.detectSuspiciousReferences();
+      for (const f of results.suspiciousReferences) {
+        await alertService.createAutomaticAlert(
+          'aval_sospechoso',
+          f.solicitudes.map(s => s.id).filter(Boolean),
+          { referencia_id: f.referencia_id, num_estudiantes: f.numero_estudiantes, veces_usada: f.veces_usada },
+          f.referencia_id
+        );
+        results.alertsCreated++;
+      }
+    } catch (err) { console.error('[FraudService] Error referencias:', err.message); }
+
+    console.log(`[FraudService] Detección completada: ${results.alertsCreated} alertas creadas`);
+    return results;
   }
 }
 

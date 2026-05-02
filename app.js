@@ -30,9 +30,12 @@ app.get('/registro', renderView('auth/registro', { title: 'Registro', role: 'pub
 app.get('/admin/dashboard', renderView('admin/dashboard', { title: 'Dashboard', role: 'admin' }))
 app.get('/admin/becas', renderView('admin/becas', { title: 'Becas', role: 'admin' }))
 app.get('/admin/revisores', renderView('admin/revisores', { title: 'Revisores', role: 'admin' }))
+app.get('/admin/estudiantes', renderView('admin/estudiantes', { title: 'Estudiantes', role: 'admin' }))
+app.get('/admin/solicitudes', renderView('admin/solicitudes', { title: 'Solicitudes', role: 'admin' }))
 app.get('/admin/alertas', renderView('admin/alertas', { title: 'Alertas', role: 'admin' }))
 app.get('/admin/fraude', renderView('admin/fraude', { title: 'Fraude', role: 'admin' }))
 app.get('/admin/agregaciones', renderView('admin/agregaciones', { title: 'Agregaciones', role: 'admin' }))
+app.get('/admin/acciones-admin', renderView('admin/acciones-admin', { title: 'Acciones Admin', role: 'admin' }))
 app.get('/admin/carga-csv', renderView('admin/carga-csv', { title: 'Carga CSV', role: 'admin' }))
 
 app.get('/estudiante/dashboard', renderView('estudiante/dashboard', { title: 'Dashboard', role: 'estudiante' }))

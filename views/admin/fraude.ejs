@@ -122,6 +122,86 @@
         </table>
       </div>
     </section>
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Dispositivos compartidos</h2>
+          <p>Dispositivos usados por multiples estudiantes.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarDispositivosCompartidos()">Actualizar</button>
+      </div>
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID Dispositivo</th>
+              <th>Navegador</th>
+              <th>Sistema Operativo</th>
+              <th>Estudiantes</th>
+              <th>Solicitudes</th>
+              <th>Riesgo (MEDIO)</th>
+            </tr>
+          </thead>
+          <tbody id="shared-devices-table">
+            <tr><td colspan="6">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Direcciones compartidas</h2>
+          <p>Misma direccion registrada por diferentes estudiantes.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarDireccionesCompartidas()">Actualizar</button>
+      </div>
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID Direccion</th>
+              <th>Direccion</th>
+              <th>Municipio</th>
+              <th>Departamento</th>
+              <th>Estudiantes</th>
+              <th>Riesgo (MEDIO)</th>
+            </tr>
+          </thead>
+          <tbody id="shared-addresses-table">
+            <tr><td colspan="6">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="actions" style="justify-content: space-between;">
+        <div>
+          <h2>Avales sospechosos</h2>
+          <p>Referencias usadas por multiples estudiantes.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="cargarAvalesSospechosos()">Actualizar</button>
+      </div>
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID Referencia</th>
+              <th>Nombre</th>
+              <th>Telefono</th>
+              <th>Veces Usada</th>
+              <th>Estudiantes</th>
+              <th>Riesgo (BAJO)</th>
+            </tr>
+          </thead>
+          <tbody id="suspicious-references-table">
+            <tr><td colspan="6">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 

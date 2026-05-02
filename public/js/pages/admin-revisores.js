@@ -12,10 +12,7 @@ async function crearRevisor() {
     Rol: document.getElementById('revisorRol').value.trim(),
     Email: document.getElementById('revisorEmail').value.trim(),
     Fecha_Ingreso: document.getElementById('revisorFecha').value,
-    Especialidades: document.getElementById('revisorEspecialidades').value
-      .split(',')
-      .map(item => item.trim())
-      .filter(Boolean)
+    Especialidades: Array.from(document.querySelectorAll('#revisorEspecialidades input[type="checkbox"]:checked')).map(cb => cb.value)
   }
 
   try {

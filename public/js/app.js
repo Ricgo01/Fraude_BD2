@@ -4,8 +4,28 @@ function formatNumber(value) {
 }
 
 function formatMoney(value) {
-  if (value === undefined || value === null || value === '') return 'Q0'
-  return `Q${Number(value).toLocaleString('es-GT')}`
+  if (value === undefined || value === null || value === '') return 'Q0.00'
+  return new Intl.NumberFormat('es-GT', {
+    style: 'currency',
+    currency: 'GTQ',
+    minimumFractionDigits: 2
+  }).format(Number(value));
+}
+
+function formatNeoDate(fecha) {
+  if (!fecha) return '-';
+  if (typeof fecha === 'string') return fecha;
+  if (fecha.year && fecha.month && fecha.day) {
+    const m = String(fecha.month).padStart(2, '0');
+    const d = String(fecha.day).padStart(2, '0');
+    return `${fecha.year}-${m}-${d}`;
+  }
+  return '-';
+}
+
+function shortId(id) {
+  if (!id) return '-';
+  return id.substring(0, 8) + '...';
 }
 
 function riskBadge(risk) {
@@ -38,19 +58,19 @@ function statusBadge(status) {
   const normalized = String(status).toLowerCase()
 
   if (normalized.includes('aprob')) {
-    return '<span class="badge badge-bajo">APROBADA</span>'
+    return '<span class="badge badge-aprobada">APROBADA</span>'
   }
 
   if (normalized.includes('rechaz')) {
-    return '<span class="badge badge-alto">RECHAZADA</span>'
+    return '<span class="badge badge-rechazada">RECHAZADA</span>'
   }
 
   if (normalized.includes('pend')) {
-    return '<span class="badge badge-medio">PENDIENTE</span>'
+    return '<span class="badge badge-pendiente">PENDIENTE</span>'
   }
 
   if (normalized.includes('revisión') || normalized.includes('revision')) {
-    return '<span class="badge badge-info">EN REVISIÓN</span>'
+    return '<span class="badge badge-en-revision">EN REVISIÓN</span>'
   }
 
   return `<span class="badge badge-info">${status}</span>`

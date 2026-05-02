@@ -97,17 +97,34 @@
           <button style="background: none; border: none; font-size: 1.5em; cursor: pointer;" onclick="cerrarModalCrearAlerta()">&times;</button>
         </div>
         
-        <label>ID de Solicitud:</label>
-        <input type="text" id="nueva-alerta-solicitud" class="form-control" style="margin-bottom: 15px;">
+        <label>Solicitud_ID:</label>
+        <select id="nueva-alerta-solicitud" class="form-control" style="margin-bottom: 15px;">
+          <option value="">Cargando solicitudes...</option>
+        </select>
 
         <label>Tipo de Alerta:</label>
-        <input type="text" id="nueva-alerta-tipo" class="form-control" placeholder="Ej: Sospecha de fraude documental" style="margin-bottom: 15px;">
+        <select id="nueva-alerta-tipo" class="form-control" style="margin-bottom: 15px;">
+          <option value="red_de_fraude">Red de fraude</option>
+          <option value="cuenta_compartida">Cuenta compartida</option>
+          <option value="documento_reutilizado">Documento reutilizado</option>
+          <option value="dispositivo_repetido">Dispositivo repetido</option>
+          <option value="direccion_compartida">Dirección compartida</option>
+          <option value="solicitud_duplicada">Solicitud duplicada</option>
+          <option value="aval_sospechoso">Aval sospechoso</option>
+        </select>
 
         <label>Nivel de Riesgo:</label>
         <select id="nueva-alerta-riesgo" class="form-control" style="margin-bottom: 15px;">
-          <option value="Alto">Alto</option>
-          <option value="Crítico">Crítico</option>
+          <option value="bajo">bajo</option>
+          <option value="medio">medio</option>
+          <option value="alto">alto</option>
         </select>
+
+        <label>Puntaje de Riesgo:</label>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+          <input type="range" id="nueva-alerta-puntaje" min="0" max="10" step="0.5" value="5" style="flex: 1;" oninput="document.getElementById('puntaje-val').innerText = this.value">
+          <span id="puntaje-val" style="width: 30px; font-weight: bold;">5</span>
+        </div>
 
         <label>Observaciones:</label>
         <textarea id="nueva-alerta-obs" class="form-control" rows="3" style="width: 100%; margin-bottom: 20px;"></textarea>

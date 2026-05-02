@@ -36,7 +36,7 @@ async function cargarDetalle() {
         document.getElementById('detalle-estudiante').innerHTML = `
             <p><strong>Nombre:</strong> ${data.estudiante?.nombre || '-'}<br>
             <strong>Promedio:</strong> ${data.estudiante?.promedio || 0}<br>
-            <strong>Email:</strong> ${data.estudiante?.email || '-'}</p>
+            <strong>Email:</strong> ${data.estudiante?.Email || '-'}</p>
         `
 
         document.getElementById('detalle-beca').innerHTML = `

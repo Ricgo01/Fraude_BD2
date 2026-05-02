@@ -323,18 +323,43 @@ body {
 }
 
 .badge-alto {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #DC2626;
+  color: white;
 }
 
 .badge-medio {
-  background: #fef3c7;
-  color: #92400e;
+  background: #F59E0B;
+  color: white;
 }
 
 .badge-bajo {
-  background: #dcfce7;
-  color: #166534;
+  background: #10B981;
+  color: white;
+}
+
+.badge-pendiente {
+  background: #6B7280;
+  color: white;
+}
+
+.badge-en-revisión {
+  background: #3B82F6;
+  color: white;
+}
+
+.badge-en-revision {
+  background: #3B82F6;
+  color: white;
+}
+
+.badge-aprobada {
+  background: #10B981;
+  color: white;
+}
+
+.badge-rechazada {
+  background: #EF4444;
+  color: white;
 }
 
 .badge-info {

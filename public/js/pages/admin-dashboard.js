@@ -24,7 +24,7 @@ async function cargarDashboard() {
   const message = document.getElementById('message')
 
   const results = await Promise.allSettled([
-    apiGet('/api/reports/alerts/stats'),
+    apiGet('/api/alerts/stats'),
     apiGet('/api/reports/accounts/stats')
   ])
 
@@ -101,9 +101,9 @@ async function cargarPagosFallidos() {
 
     tbody.innerHTML = items.map(item => `
       <tr>
-        <td>${item.estudiante_id || '-'}</td>
+        <td>${item.ID || item.estudiante_id || '-'}</td>
         <td>${item.nombre || '-'}</td>
-        <td style="color: #ef4444; font-weight: bold;">${item.intentos_fallidos || 0}</td>
+        <td style="color: #ef4444; font-weight: bold;">${item.Intentos || 0}</td>
       </tr>
     `).join('')
   } catch (error) {

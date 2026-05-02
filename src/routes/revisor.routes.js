@@ -22,4 +22,7 @@ router.delete('/solicitud/:solicitudId/documento/:documentoId', controller.elimi
 // ─── Relaciones ────────────────────────────────────────────────
 router.patch('/solicitud/:solicitudId/nota', controller.agregarNotaRevision)
 
+router.get('/solicitudes/disponibles', controller.verSolicitudesDisponibles)
+router.patch('/solicitud/:solicitudId/tomar', controller.tomarSolicitud)
+
 module.exports = router

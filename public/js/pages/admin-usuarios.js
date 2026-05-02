@@ -22,7 +22,7 @@ async function cargarEstudiantes() {
         </td>
         <td>${est.id || '-'}</td>
         <td>${est.nombre || est.nombre_completo || '-'}</td>
-        <td>${est.email || '-'}</td>
+        <td>${est.Email || '-'}</td>
         <td>${est.promedio || 0}</td>
         <td>
           ${est.activo 
