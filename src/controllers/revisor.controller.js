@@ -406,3 +406,63 @@ exports.contarSolicitudesPendientes = async (req, res) => {
         await session.close()
     }
 }
+
+exports.tomarSolicitud = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { solicitudId } = req.params
+        const revisorId = req.usuario.id  // del JWT
+
+        const result = await session.run(
+            `MATCH (s:Solicitud {ID: $solicitudId})
+       WHERE NOT (s)-[:REVISADA_POR]->()
+       MATCH (r:Revisor {ID: $revisorId})
+       CREATE (s)-[rel:REVISADA_POR]->(r)
+       SET rel.Fecha_Asignacion = date(),
+           rel.Fecha_Resolucion = date(),
+           rel.Decision = 'En revisión',
+           s.Estado = 'En revisión'
+       RETURN s`,
+            { solicitudId, revisorId }
+        )
+
+        if (result.records.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Solicitud no encontrada o ya tiene revisor asignado'
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Solicitud tomada exitosamente'
+        })
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.verSolicitudesDisponibles = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (s:Solicitud {Estado: 'Pendiente'})
+       WHERE NOT (s)-[:REVISADA_POR]->()
+       MATCH (e:Estudiante)-[:ENVIA]->(s)
+       MATCH (s)-[:APLICA_A]->(b:Beca)
+       RETURN {
+         solicitud_id: s.ID,
+         fecha_envio: s.Fecha_Envio,
+         monto: s.Monto_Solicitado,
+         estudiante: e.Nombre_Completo,
+         beca: b.Nombre_Beca
+       } AS resultado
+       ORDER BY s.Fecha_Envio ASC`
+        )
+        const data = result.records.map(r => r.get('resultado'))
+        res.status(200).json({ success: true, data })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
