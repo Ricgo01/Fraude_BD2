@@ -182,6 +182,31 @@
             <button class="btn btn-danger" onclick="eliminarIPHashConfirm()" style="margin-top:10px;">Borrar IP</button>
           </div>
 
+          <!-- NUEVA: Eliminar Estado_Inicial de 1 relación ENVIA -->
+          <div class="form-card">
+            <h3>Eliminar Estado_Inicial de envío</h3>
+            <p class="form-card-desc">Quita la propiedad <code>Estado_Inicial</code> de una relación <strong>ENVIA</strong> específica, identificada por su ID de envío. Acción sobre 1 relación.</p>
+            <label style="font-size:0.85em; font-weight:600; display:block; margin-bottom:6px;">ID del envío (ID_Envio)</label>
+            <input type="text" class="form-control" id="input-id-envio" placeholder="Ej: TX-0001 o UUID de la relación" style="margin-bottom:10px;">
+            <button class="btn btn-danger" onclick="eliminarEstadoInicialAction()">Ejecutar</button>
+          </div>
+
+          <!-- NUEVA: Eliminar Canal de todas las relaciones ENVIA -->
+          <div class="form-card">
+            <h3>Eliminar Canal de todos los envíos</h3>
+            <p class="form-card-desc">Quita la propiedad <code>Canal</code> de <strong>todas</strong> las relaciones ENVIA en la base de datos. Esta acción afecta múltiples relaciones de forma masiva.</p>
+            <p class="form-card-desc" style="color:#dc2626; font-weight:600;">⚠️ Esta acción es masiva e irreversible.</p>
+            <button class="btn btn-danger" onclick="eliminarCanalEnviosAction()">Ejecutar</button>
+          </div>
+
+          <!-- NUEVA: Eliminar vínculos GENERA_ALERTA hacia alertas falsas -->
+          <div class="form-card">
+            <h3>Eliminar vínculos de alertas falsas</h3>
+            <p class="form-card-desc">Elimina todas las relaciones <strong>GENERA_ALERTA</strong> que apunten a alertas marcadas con estado <code>Falsa</code>. Limpieza de relaciones fraudulentas confirmadas.</p>
+            <p class="form-card-desc" style="color:#dc2626; font-weight:600;">⚠️ Esta acción elimina relaciones permanentemente.</p>
+            <button class="btn btn-danger" onclick="eliminarVinculosFalsosAction()">Ejecutar</button>
+          </div>
+
         </div>
       </div>
     </section>
@@ -263,6 +288,33 @@ function openTab(tabId, event) {
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).style.display = 'block';
   if (event && event.target) event.target.classList.add('active');
+}
+
+async function eliminarEstadoInicialAction() {
+  const idEnvio = document.getElementById('input-id-envio').value.trim()
+  if (!idEnvio) { mostrarToast('Ingresa un ID de envío.', 'error'); return }
+  if (!confirm(`¿Eliminar Estado_Inicial de la relación ENVIA con ID_Envio "${idEnvio}"?`)) return
+  try {
+    const r = await apiPost('/admin/acciones/eliminar-estado-inicial', { id_envio: idEnvio })
+    mostrarToast(r.message || 'Operación exitosa.', 'success')
+    document.getElementById('input-id-envio').value = ''
+  } catch (e) { mostrarToast(e.message, 'error') }
+}
+
+async function eliminarCanalEnviosAction() {
+  if (!confirm('¿Eliminar la propiedad Canal de TODAS las relaciones ENVIA? Esta acción es masiva e irreversible.')) return
+  try {
+    const r = await apiPost('/admin/acciones/eliminar-canal-envios', {})
+    mostrarToast(r.message || 'Operación exitosa.', 'success')
+  } catch (e) { mostrarToast(e.message, 'error') }
+}
+
+async function eliminarVinculosFalsosAction() {
+  if (!confirm('¿Eliminar todas las relaciones GENERA_ALERTA hacia alertas con Estado="Falsa"? Esta acción es irreversible.')) return
+  try {
+    const r = await apiPost('/admin/acciones/eliminar-vinculos-falsos', {})
+    mostrarToast(r.message || 'Operación exitosa.', 'success')
+  } catch (e) { mostrarToast(e.message, 'error') }
 }
 </script>
 

@@ -596,6 +596,56 @@ exports.eliminarAuditadaAdjuntas = async (req, res) => {
     } finally { await session.close() }
 }
 
+// ─── ELIMINAR PROPS / RELACIONES (nuevas acciones admin) ────────────────────
+
+// Función A: Eliminar prop Estado_Inicial de 1 relación ENVIA (por ID_Envio)
+exports.eliminarEstadoInicial = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { id_envio } = req.body
+        if (!id_envio) {
+            return res.status(400).json({ success: false, message: 'Se requiere id_envio' })
+        }
+        await session.run(
+            `MATCH ()-[r:ENVIA {ID_Envio: $id_envio}]->() REMOVE r.Estado_Inicial`,
+            { id_envio }
+        )
+        res.status(200).json({ success: true, message: `Estado_Inicial eliminado de la relación ENVIA con ID_Envio: ${id_envio}` })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+// Función B: Eliminar prop Canal de todas las relaciones ENVIA
+exports.eliminarCanalEnvios = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH ()-[r:ENVIA]->() REMOVE r.Canal RETURN count(r) AS total`
+        )
+        const total = result.records[0].get('total')
+        const n = total && total.low !== undefined ? total.low : (total || 0)
+        res.status(200).json({ success: true, message: `Canal eliminado de ${n} relaciones ENVIA` })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+// Función C: Eliminar relaciones GENERA_ALERTA hacia alertas falsas
+exports.eliminarVinculosFalsos = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH ()-[r:GENERA_ALERTA]->(a:Alerta {Estado: 'Falsa'}) DELETE r RETURN count(r) AS total`
+        )
+        const total = result.records[0].get('total')
+        const n = total && total.low !== undefined ? total.low : (total || 0)
+        res.status(200).json({ success: true, message: `${n} relaciones GENERA_ALERTA hacia alertas falsas eliminadas` })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
 const fs = require('fs')
 const { parse } = require('csv-parse')
 

@@ -26,7 +26,7 @@ async function cargarSolicitudes() {
         <td>${solicitud.ID || '-'}</td>
         <td>${formatMoney(solicitud.Monto_Solicitado)}</td>
         <td>${statusBadge(solicitud.Estado)}</td>
-        <td>${solicitud.Fecha_Envio || '-'}</td>
+        <td>${formatNeoDate(solicitud.Fecha_Envio) || '-'}</td>
         <td><a class="btn btn-secondary" href="/estudiante/solicitudes/${solicitud.ID}">Ver</a></td>
       </tr>
     `).join('')

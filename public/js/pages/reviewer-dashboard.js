@@ -36,7 +36,7 @@ async function cargarUrgentes() {
         const items = (response.data || []).slice(0, 5)
 
         if (!items.length) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#6b7280;">No tienes casos de alto riesgo. ✅</td></tr>'
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#6b7280;">No tienes casos de alto riesgo.</td></tr>'
             return
         }
 
@@ -48,7 +48,7 @@ async function cargarUrgentes() {
                 <td>${formatMoney(item.monto_solicitado)}</td>
                 <td>${statusBadge(item.estado)}</td>
                 <td>
-                    <a class="btn btn-primary" href="/revisor/solicitud/${item.solicitud_id}" style="background: #ef4444;">⚡ Atender</a>
+                    <a class="btn btn-primary" href="/revisor/solicitud/${item.solicitud_id}" style="background: #ef4444;">Atender</a>
                 </td>
             </tr>
         `).join('')

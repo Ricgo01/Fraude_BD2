@@ -49,6 +49,11 @@ router.delete('/alertas/relaciones', controller.eliminarGeneraAlertas)
 router.delete('/solicitud/:solicitudId/revisor/:revisorId/nota', controller.eliminarNotaRevision)
 router.patch('/adjuntas/desauditar', controller.eliminarAuditadaAdjuntas)
 
+// ─── Acciones: eliminar props y relaciones ─────────────────────
+router.post('/acciones/eliminar-estado-inicial', controller.eliminarEstadoInicial)
+router.post('/acciones/eliminar-canal-envios', controller.eliminarCanalEnvios)
+router.post('/acciones/eliminar-vinculos-falsos', controller.eliminarVinculosFalsos)
+
 router.post('/estudiantes/csv', upload.single('archivo'), controller.cargarEstudiantesCSV)
 
 module.exports = router

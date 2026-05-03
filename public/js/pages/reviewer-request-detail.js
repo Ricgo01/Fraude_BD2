@@ -26,7 +26,7 @@ async function cargarDetalle() {
             const resuelta = data.alertas.every(a => a.resuelta)
             if(!resuelta) {
                 banner.style.display = 'block'
-                banner.innerHTML = `⚠️ ATENCIÓN: Esta solicitud tiene ${data.alertas.length} alertas de fraude activas - Nivel ${nivelMaximo}.`
+                banner.innerHTML = `ATENCIÓN: Esta solicitud tiene ${data.alertas.length} alertas de fraude activas - Nivel ${nivelMaximo}.`
             }
         } else {
             banner.style.display = 'none'

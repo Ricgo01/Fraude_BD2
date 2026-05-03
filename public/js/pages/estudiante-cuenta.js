@@ -45,15 +45,22 @@ async function cargarCuentas() {
       return
     }
 
-    tbody.innerHTML = cuentasCache.map((cuenta) => `
+    tbody.innerHTML = cuentasCache.map((cuenta) => {
+      const terminacion = (cuenta.Terminacion && typeof cuenta.Terminacion === 'object' && cuenta.Terminacion.low !== undefined)
+        ? cuenta.Terminacion.low
+        : (cuenta.Terminacion || '-')
+      const fechaReg = (cuenta.Fecha_Registro && typeof cuenta.Fecha_Registro === 'object' && cuenta.Fecha_Registro.year !== undefined)
+        ? formatNeoDate(cuenta.Fecha_Registro)
+        : (cuenta.Fecha_Registro || '-')
+      return `
       <tr>
         <td>${cuenta.Banco || '-'}</td>
         <td>${cuenta.Tipo_Cuenta || '-'}</td>
-        <td>${cuenta.Terminacion || '-'}</td>
+        <td>****${terminacion}</td>
         <td>${cuenta.Activa ? 'Si' : 'No'}</td>
         <td>${cuenta.Verificada ? 'Si' : 'No'}</td>
-      </tr>
-    `).join('')
+      </tr>`
+    }).join('')
 
     select.innerHTML = ['<option value="">Selecciona una cuenta</option>']
       .concat(cuentasCache.map((cuenta) => (
@@ -76,9 +83,15 @@ function seleccionarCuenta() {
   cuentaActualId = cuenta.ID
   document.getElementById('banco').value = cuenta.Banco || ''
   document.getElementById('tipoCuenta').value = cuenta.Tipo_Cuenta || ''
-  document.getElementById('terminacion').value = cuenta.Terminacion || ''
+  const terminacionVal = (cuenta.Terminacion && typeof cuenta.Terminacion === 'object' && cuenta.Terminacion.low !== undefined)
+    ? cuenta.Terminacion.low
+    : (cuenta.Terminacion || '')
+  document.getElementById('terminacion').value = terminacionVal
   document.getElementById('activa').value = cuenta.Activa ? 'true' : 'false'
-  document.getElementById('fechaRegistro').value = cuenta.Fecha_Registro || ''
+  const fechaRegistroVal = (cuenta.Fecha_Registro && typeof cuenta.Fecha_Registro === 'object' && cuenta.Fecha_Registro.year !== undefined)
+    ? formatNeoDate(cuenta.Fecha_Registro)
+    : (cuenta.Fecha_Registro || '')
+  document.getElementById('fechaRegistro').value = fechaRegistroVal
   document.getElementById('principal').value = cuenta.Principal ? 'true' : 'false'
   document.getElementById('verificada').value = cuenta.Verificada ? 'true' : 'false'
 }
