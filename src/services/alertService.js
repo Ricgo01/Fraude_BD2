@@ -73,6 +73,28 @@ class AlertService {
         dedupKey: dedupKey || tipoAlerta
       });
 
+      // Si es aval_sospechoso, crear relación MARCA hacia la Referencia
+      if (tipoAlerta === 'aval_sospechoso' && metadatos.referencia_id) {
+        const sessionMarca = driver.session();
+        try {
+          await sessionMarca.run(
+            `MATCH (a:Alerta {DedupKey: $dedupKey})
+             MATCH (r:Referencia {ID: $referenciaId})
+             MERGE (a)-[:MARCA {
+               Fecha_Deteccion: date(),
+               Motivo: 'aval_sospechoso',
+               Investigada: false
+             }]->(r)`,
+            {
+              dedupKey: dedupKey || tipoAlerta,
+              referenciaId: metadatos.referencia_id
+            }
+          );
+        } finally {
+          await sessionMarca.close();
+        }
+      }
+
       return {
         alerta_id: result.records[0]?.get('alerta_id'),
         tipo_alerta: tipoAlerta,

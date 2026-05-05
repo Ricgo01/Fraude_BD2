@@ -71,27 +71,86 @@ exports.actualizarBeca = async (req, res) => {
 exports.crearAlertaManual = async (req, res) => {
     const session = driver.session()
     try {
-        const { Tipo_Alerta, Nivel_Riesgo, Puntaje_Riesgo, Solicitud_ID } = req.body
+        const { Solicitud_ID, Tipo_Alerta, Nivel_Riesgo, Observacion, Revisor_ID } = req.body
+
+        if (!Solicitud_ID || !Tipo_Alerta || !Nivel_Riesgo) {
+            return res.status(400).json({
+                success: false,
+                message: 'Solicitud_ID, Tipo_Alerta y Nivel_Riesgo son requeridos'
+            })
+        }
+
+        const puntajes = {
+            'red_de_fraude':         9.0,
+            'cuenta_compartida':     8.5,
+            'documento_reutilizado': 8.0,
+            'dispositivo_repetido':  5.5,
+            'direccion_compartida':  5.0,
+            'solicitud_duplicada':   4.5,
+            'aval_sospechoso':       3.5
+        }
+
         const result = await session.run(
-            `CREATE (a:Riesgo:Alerta:Manual {
-        ID: randomUUID(),
-        Tipo_Alerta: $tipoAlerta,
-        Nivel_Riesgo: $nivelRiesgo,
-        Puntaje_Riesgo: toFloat($puntajeRiesgo),
-        Resuelta: false,
-        Fecha_Creacion: date()
-      })
-      WITH a
-      MATCH (s:Solicitud {ID: $solicitudId})
-      CREATE (s)-[:GENERA_ALERTA {
-        Fecha_Deteccion: date(),
-        Regla_Disparada: $tipoAlerta,
-        Estado_Alerta: 'activa'
-      }]->(a)
-      RETURN a`,
-            { tipoAlerta: Tipo_Alerta, nivelRiesgo: Nivel_Riesgo, puntajeRiesgo: Puntaje_Riesgo, solicitudId: Solicitud_ID }
+            `MATCH (s:Solicitud {ID: $solicitudId})
+             MATCH (e:Estudiante)-[:ENVIA]->(s)
+             CREATE (a:Riesgo:Alerta:Manual {
+               ID: randomUUID(),
+               Tipo_Alerta: $tipoAlerta,
+               Nivel_Riesgo: $nivelRiesgo,
+               Puntaje_Riesgo: $puntaje,
+               Resuelta: false,
+               Fecha_Creacion: date(),
+               Observacion: $observacion
+             })
+             CREATE (s)-[:GENERA_ALERTA {
+               Fecha_Deteccion: date(),
+               Regla_Disparada: 'manual',
+               Estado_Alerta: 'activa'
+             }]->(a)
+             CREATE (a)-[:INVOLUCRA {
+               Fecha_Deteccion: date(),
+               Motivo: $tipoAlerta,
+               Confirmada: false
+             }]->(e)
+             RETURN a.ID AS alertaId`,
+            {
+                solicitudId: Solicitud_ID,
+                tipoAlerta: Tipo_Alerta,
+                nivelRiesgo: Nivel_Riesgo,
+                puntaje: puntajes[Tipo_Alerta] ?? 5.0,
+                observacion: Observacion ?? ''
+            }
         )
-        res.status(201).json({ success: true, data: result.records[0].get('a').properties })
+
+        if (result.records.length === 0) {
+            return res.status(404).json({ success: false, message: 'Solicitud no encontrada' })
+        }
+
+        const alertaId = result.records[0].get('alertaId')
+
+        if (Revisor_ID) {
+            await session.run(
+                `MATCH (a:Alerta {ID: $alertaId})
+                 MATCH (r:Revisor {ID: $revisorId})
+                 CREATE (a)-[:SEÑALA {
+                   Fecha_Deteccion: date(),
+                   Subcaso: $tipoAlerta,
+                   Escalada: false
+                 }]->(r)`,
+                { alertaId, revisorId: Revisor_ID, tipoAlerta: Tipo_Alerta }
+            )
+        }
+
+        res.status(201).json({
+            success: true,
+            message: 'Alerta manual creada exitosamente',
+            data: {
+                alerta_id: alertaId,
+                relaciones_creadas: Revisor_ID
+                    ? ['GENERA_ALERTA', 'INVOLUCRA', 'SEÑALA']
+                    : ['GENERA_ALERTA', 'INVOLUCRA']
+            }
+        })
     } catch (error) {
         res.status(500).json({ success: false, message: error.message })
     } finally { await session.close() }
@@ -222,6 +281,105 @@ exports.verAlertasActivas = async (req, res) => {
         )
         const alertas = result.records.map(r => r.get('a').properties)
         res.status(200).json({ success: true, data: alertas })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.verRevisorDeSolicitud = async (req, res) => {
+    const session = driver.session()
+    try {
+        const { solicitudId } = req.params
+        const result = await session.run(
+            `MATCH (s:Solicitud {ID: $solicitudId})-[r:REVISADA_POR]->(rev:Revisor)
+             RETURN {
+               revisor_id: rev.ID,
+               nombre: rev.Nombre,
+               rol: rev.Rol,
+               email: rev.Email,
+               decision: r.Decision,
+               fecha_resolucion: r.Fecha_Resolucion
+             } AS resultado`,
+            { solicitudId }
+        )
+        if (result.records.length === 0) {
+            return res.status(200).json({
+                success: true,
+                data: null,
+                message: 'Esta solicitud no tiene revisor asignado'
+            })
+        }
+        res.status(200).json({ success: true, data: result.records[0].get('resultado') })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.verTodasLasSolicitudes = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (e:Estudiante)-[:ENVIA]->(s:Solicitud)-[:APLICA_A]->(b:Beca)
+             RETURN {
+               solicitud_id: s.ID,
+               estado: s.Estado,
+               monto: s.Monto_Solicitado,
+               estudiante: e.Nombre_Completo,
+               beca: b.Nombre_Beca
+             } AS resultado
+             ORDER BY s.Fecha_Envio DESC`
+        )
+        const data = result.records.map(r => r.get('resultado'))
+        res.status(200).json({ success: true, data })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.verAlertasResueltas = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (a:Alerta {Resuelta: true})
+             OPTIONAL MATCH (s:Solicitud)-[:GENERA_ALERTA]->(a)
+             OPTIONAL MATCH (e:Estudiante)-[:ENVIA]->(s)
+             RETURN {
+               ID: a.ID,
+               Tipo_Alerta: a.Tipo_Alerta,
+               Nivel_Riesgo: a.Nivel_Riesgo,
+               Resuelta: a.Resuelta,
+               Fecha_Creacion: a.Fecha_Creacion,
+               Observacion: a.Observacion,
+               estudiante_nombre: e.Nombre_Completo
+             } AS resultado
+             ORDER BY a.Fecha_Creacion DESC`
+        )
+        const data = result.records.map(r => r.get('resultado'))
+        res.status(200).json({ success: true, data })
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    } finally { await session.close() }
+}
+
+exports.verDispositivos = async (req, res) => {
+    const session = driver.session()
+    try {
+        const result = await session.run(
+            `MATCH (d:Dispositivo)
+             WHERE d.IP_Hash IS NOT NULL
+             OPTIONAL MATCH (e:Estudiante)-[:USA_DISPOSITIVO]->(d)
+             RETURN {
+               ID: d.ID,
+               Navegador: d.Navegador,
+               Sistema_Operativo: d.Sistema_Operativo,
+               IP_Hash: d.IP_Hash,
+               Activo: d.Activo,
+               estudiante_nombre: e.Nombre_Completo
+             } AS resultado
+             ORDER BY d.Fecha_Registro DESC`
+        )
+        const data = result.records.map(r => r.get('resultado'))
+        res.status(200).json({ success: true, data })
     } catch (error) {
         res.status(500).json({ success: false, message: error.message })
     } finally { await session.close() }

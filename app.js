@@ -21,6 +21,7 @@ const renderView = (view, getOptions) => (req, res, next) => {
     const options = typeof getOptions === 'function' ? getOptions(req) : (getOptions || {})
     return res.render(view, options)
 }
+const comunidadesRoutes = require('./src/routes/comunidades.routes')
 
 // Vistas
 app.get('/', (req, res) => res.redirect('/login'))
@@ -37,6 +38,7 @@ app.get('/admin/fraude', renderView('admin/fraude', { title: 'Fraude', role: 'ad
 app.get('/admin/agregaciones', renderView('admin/agregaciones', { title: 'Agregaciones', role: 'admin' }))
 app.get('/admin/acciones-admin', renderView('admin/acciones-admin', { title: 'Acciones Admin', role: 'admin' }))
 app.get('/admin/carga-csv', renderView('admin/carga-csv', { title: 'Carga CSV', role: 'admin' }))
+app.get('/admin/comunidades', renderView('admin/comunidades', { title: 'Comunidades', role: 'admin' }))
 
 app.get('/estudiante/dashboard', renderView('estudiante/dashboard', { title: 'Dashboard', role: 'estudiante' }))
 app.get('/estudiante/perfil', renderView('estudiante/perfil', { title: 'Perfil', role: 'estudiante' }))
@@ -71,6 +73,7 @@ app.use('/auth', require('./src/routes/auth.routes'))
 app.use('/estudiante', require('./src/routes/estudiante.routes'))
 app.use('/revisor', require('./src/routes/revisor.routes'))
 app.use('/admin', require('./src/routes/admin.routes'))
+app.use('/admin/comunidades', comunidadesRoutes)
 // Inicio
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {

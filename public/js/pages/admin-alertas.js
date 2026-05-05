@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 let alertaSeleccionada = null
+let _revisorInfoActual  = null
+let _senalarRevisor     = false
 
 async function cargarAlertas() {
   const tbody = document.getElementById('alerts-table')
@@ -131,44 +133,100 @@ async function eliminarTodasAlertas() {
 // === MODAL CREAR ALERTA MANUAL ===
 async function abrirModalCrearAlerta() {
   document.getElementById('modal-crear-alerta').style.display = 'flex'
-  const select = document.getElementById('nueva-alerta-solicitud')
-  select.innerHTML = '<option value="">Cargando solicitudes...</option>'
+
+  const selectSol = document.getElementById('nueva-alerta-solicitud')
+  selectSol.innerHTML = '<option value="">Cargando solicitudes...</option>'
+
   try {
-    const response = await apiGet('/admin/solicitudes')
-    const items = response.data || []
-    select.innerHTML = '<option value="">Selecciona una solicitud</option>' + 
-      items.map(s => `<option value="${s.ID}">${(s.ID || '').substring(0,8)}... - ${s.Estudiante_Nombre || s.Estudiante || 'Estudiante'} - ${s.Estado || 'Sin estado'}</option>`).join('')
-  } catch (error) {
-    select.innerHTML = '<option value="">Error cargando solicitudes</option>'
+    const response  = await apiGet('/admin/solicitudes')
+    const solicitudes = response.data || []
+    selectSol.innerHTML = '<option value="">Selecciona una solicitud</option>' +
+      solicitudes.map(s => `<option value="${s.solicitud_id}">[${s.estado || 'Sin estado'}] ${s.estudiante || 'Estudiante'} — ${s.beca || 'Sin beca'}</option>`).join('')
+  } catch (_) {
+    selectSol.innerHTML = '<option value="">Error cargando solicitudes</option>'
   }
 }
 
 function cerrarModalCrearAlerta() {
   document.getElementById('modal-crear-alerta').style.display = 'none'
+  _revisorInfoActual = null
+  _senalarRevisor    = false
+  document.getElementById('revisor-info-block').style.display = 'none'
+}
+
+async function onSolicitudChange(solicitudId) {
+  _revisorInfoActual = null
+  _senalarRevisor    = false
+  document.getElementById('revisor-info-block').style.display = 'none'
+
+  if (!solicitudId) return
+
+  try {
+    const response = await apiGet(`/admin/solicitud/${solicitudId}/revisor`)
+    if (response.success && response.data) {
+      _revisorInfoActual = response.data
+
+      const rev      = response.data
+      const fecha    = formatNeoDate(rev.fecha_resolucion)
+      const decision = rev.decision
+        ? `Decision: ${rev.decision}${fecha ? ' — ' + fecha : ''}`
+        : 'Sin decision registrada'
+
+      document.getElementById('revisor-info-nombre').textContent   = `${rev.nombre} (${rev.rol || 'Revisor'})`
+      document.getElementById('revisor-info-email').textContent    = rev.email || ''
+      document.getElementById('revisor-info-decision').textContent = decision
+
+      actualizarBotonesSeñalar()
+      document.getElementById('revisor-info-block').style.display = 'block'
+    }
+  } catch (_) {}
+}
+
+function senalarRevisorSi() {
+  _senalarRevisor = true
+  actualizarBotonesSeñalar()
+}
+
+function senalarRevisorNo() {
+  _senalarRevisor = false
+  actualizarBotonesSeñalar()
+}
+
+function actualizarBotonesSeñalar() {
+  const btnSi = document.getElementById('btn-senalar-si')
+  const btnNo = document.getElementById('btn-senalar-no')
+  if (!btnSi || !btnNo) return
+
+  const activeStyle   = 'background:#3B82F6;color:white;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;'
+  const inactiveStyle = 'background:white;color:#6B7280;border:1px solid #D1D5DB;padding:6px 16px;border-radius:4px;cursor:pointer;'
+
+  btnSi.style.cssText = _senalarRevisor ? activeStyle : inactiveStyle
+  btnNo.style.cssText = _senalarRevisor ? inactiveStyle : activeStyle
 }
 
 async function guardarAlertaManual() {
   const solicitudId = document.getElementById('nueva-alerta-solicitud').value.trim()
-  const tipo = document.getElementById('nueva-alerta-tipo').value.trim()
-  const riesgo = document.getElementById('nueva-alerta-riesgo').value
+  const tipo        = document.getElementById('nueva-alerta-tipo').value.trim()
+  const riesgo      = document.getElementById('nueva-alerta-riesgo').value
   const observacion = document.getElementById('nueva-alerta-obs').value.trim()
-
-  const puntaje = document.getElementById('nueva-alerta-puntaje').value
+  const revisorId   = (_senalarRevisor && _revisorInfoActual)
+    ? _revisorInfoActual.revisor_id
+    : null
 
   if (!solicitudId || !tipo) {
-    mostrarToast('Solicitud ID y Tipo son obligatorios', 'error')
+    mostrarToast('Solicitud y Tipo son obligatorios', 'error')
     return
   }
 
   try {
-    await apiPost('/admin/alerta', {
+    const response = await apiPost('/admin/alerta', {
       Solicitud_ID: solicitudId,
       Tipo_Alerta: tipo,
       Nivel_Riesgo: riesgo,
-      Puntaje_Riesgo: parseFloat(puntaje),
-      Observaciones: observacion
+      Observacion: observacion,
+      Revisor_ID: revisorId
     })
-    mostrarToast('Alerta creada correctamente', 'success')
+    mostrarToast(response.message || 'Alerta creada correctamente', 'success')
     cerrarModalCrearAlerta()
     cargarAlertas()
   } catch (error) {

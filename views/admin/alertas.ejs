@@ -101,9 +101,21 @@
         </div>
         
         <label>Solicitud_ID:</label>
-        <select id="nueva-alerta-solicitud" class="form-control" style="margin-bottom: 15px;">
+        <select id="nueva-alerta-solicitud" class="form-control" style="margin-bottom: 12px;" onchange="onSolicitudChange(this.value)">
           <option value="">Cargando solicitudes...</option>
         </select>
+
+        <div id="revisor-info-block" style="display: none; margin-bottom: 12px; padding: 14px; background: #F0F9FF; border-left: 4px solid #3B82F6; border-radius: 4px;">
+          <p style="font-weight: 600; margin: 0 0 6px; color: #1E40AF;">Revisor asignado a esta solicitud:</p>
+          <p id="revisor-info-nombre" style="margin: 0 0 2px;"></p>
+          <p id="revisor-info-email" style="margin: 0 0 2px; color: var(--gray-text); font-size: 13px;"></p>
+          <p id="revisor-info-decision" style="margin: 0 0 10px; font-size: 13px;"></p>
+          <p style="margin: 0 0 6px; font-weight: 500;">¿Señalar a este revisor como sospechoso?</p>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-senalar-si" type="button" onclick="senalarRevisorSi()" style="background: white; color: #6B7280; border: 1px solid #D1D5DB; padding: 6px 16px; border-radius: 4px; cursor: pointer;">Si, señalar</button>
+            <button id="btn-senalar-no" type="button" onclick="senalarRevisorNo()" style="background: white; color: #6B7280; border: 1px solid #D1D5DB; padding: 6px 16px; border-radius: 4px; cursor: pointer;">No</button>
+          </div>
+        </div>
 
         <label>Tipo de Alerta:</label>
         <select id="nueva-alerta-tipo" class="form-control" style="margin-bottom: 15px;">
